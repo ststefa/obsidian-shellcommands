@@ -18,15 +18,14 @@
  */
 
 import {
-    App,
     normalizePath,
 } from "obsidian";
+import type {
+    App,
+    TFile,
+    TFolder,
+} from "obsidian";
 import {Shell} from "../shells/Shell";
-import {
-    getFileExtension,
-    getFilePath,
-    getFolderPath,
-} from "./VariableHelpers";
 import {getCurrentFile} from "./getCurrentFile";
 
 export function parseCurrentFileVariablesSynchronously(app: App, shell: Shell, content: string): string {
@@ -77,6 +76,48 @@ export function parseCurrentFileVariablesSynchronously(app: App, shell: Shell, c
         }
         return quotePreviewValue(value);
     });
+}
+
+function getFilePath(app: App, shell: Shell, file: TFile, mode: "absolute" | "relative"): string | null {
+    switch (mode) {
+        case "absolute": {
+            const vaultPath = getVaultPath(app);
+            return vaultPath
+                ? shell.translateAbsolutePath(vaultPath + "/" + file.path)
+                : null;
+        }
+        case "relative":
+            return shell.translateRelativePath(file.path);
+    }
+}
+
+function getFolderPath(app: App, shell: Shell, folder: TFolder, mode: "absolute" | "relative"): string | null {
+    switch (mode) {
+        case "absolute": {
+            const vaultPath = getVaultPath(app);
+            return vaultPath
+                ? shell.translateAbsolutePath(vaultPath + "/" + folder.path)
+                : null;
+        }
+        case "relative":
+            return folder.isRoot()
+                ? "."
+                : shell.translateRelativePath(folder.path);
+    }
+}
+
+function getFileExtension(file: TFile, withDot: boolean): string {
+    if (!withDot || file.extension.length === 0) {
+        return file.extension;
+    }
+    return "." + file.extension;
+}
+
+function getVaultPath(app: App): string | null {
+    const adapter = app.vault.adapter as { getBasePath?: () => string };
+    return typeof adapter.getBasePath === "function"
+        ? adapter.getBasePath()
+        : null;
 }
 
 function quotePreviewValue(value: string): string {

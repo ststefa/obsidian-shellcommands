@@ -26,6 +26,8 @@ Features that are currently in development and not released yet. This does not i
 ### Fixed
 
 - Settings tabs was blank on Obsidian 1.13+: Replaced custom tabs with Obsidian default tabs. The settings UI is functionally equivalent but looks quite different now. It is more consistent with the "Obsidian-Style".
+- Variables in command palette view would resolve to the current file only upon the second invocation. Now they resolve immediately upon opening.
+- Resolved some simple TODOs/FIXMEs
 
 ### Chores
 

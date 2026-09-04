@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "packageManager": "npm@11.17.0",
@@ -24,7 +25,7 @@
     "eslint": "^10.9.1",
     "obsidian": "^1.13.1",
     "tslib": "^2.8.1",
-    "typescript": "6.0.3"
-  },
-  "dependencies": {}
+    "typescript": "6.0.3",
+    "vitest": "^5.0.0"
+  }
 }
