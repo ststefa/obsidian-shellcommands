@@ -491,7 +491,7 @@ export default class SC_Plugin extends Plugin {
 				if (undefined !== parameters.execute) {
 					// Execute a shell command.
 					const executable_shell_command_id = parameters.execute;
-					parameter_names.remove("execute"); // Mark the parameter as handled. Prevents showing an error message for an unrecognised parameter.
+					parameter_names.splice(parameter_names.indexOf("execute"), 1); // Mark the parameter as handled. Prevents showing an error message for an unrecognised parameter.
 
 					// Find the executable shell command
 					let found_t_shell_command = false;

@@ -152,7 +152,7 @@ export function createVariableDefaultValueField(
     };
 
     // Define a set of options for default value type
-    const defaultValueTypeOptions = {
+    const defaultValueTypeOptions: Partial<Record<VariableDefaultValueType | "inherit", string>> = {
         "inherit": "", // Will be updated or deleted below.
         "show-errors": "Cancel execution and show errors",
         "cancel-silently": "Cancel execution silently",
@@ -172,7 +172,6 @@ export function createVariableDefaultValueField(
         case "builtinVariable":
         case "customVariable": {
             // Variables do not have the "inherit" type.
-            // @ts-ignore Don't yell about removing a non-optional property "inherit".
             delete defaultValueTypeOptions.inherit;
         }
     }

@@ -126,7 +126,7 @@ class OutputModal extends SC_Modal {
             const outputField: Setting = this.outputFields[outputStreamName];
 
             // Set field value
-            const textareaComponent = outputField.components.first() as TextAreaComponent;
+            const textareaComponent = outputField.components[0] as TextAreaComponent;
             const outputContent = outputs[outputStreamName];
             textareaComponent.setValue(outputContent as string); // as string = outputContent is not undefined because of the .forEach() loop.
 
@@ -145,7 +145,7 @@ class OutputModal extends SC_Modal {
         const outputField: Setting = this.outputFields[outputStreamName];
 
         // Update field value
-        const textareaComponent = outputField.components.first() as TextAreaComponent;
+        const textareaComponent = outputField.components[0] as TextAreaComponent;
         textareaComponent.setValue(textareaComponent.getValue() + outputContent);
 
         // Make field visible (if it's not already)
@@ -365,7 +365,7 @@ class OutputModal extends SC_Modal {
         const activeTextareaCandidates: {textarea: HTMLTextAreaElement, outputStreamName: OutputStream}[] = [];
         for (const outputStreamName of Object.getOwnPropertyNames(this.outputFields) as OutputStream[]) {
             const outputSetting = this.outputFields[outputStreamName];
-            const component = outputSetting.components.first();
+            const component = outputSetting.components[0];
             if (component instanceof TextAreaComponent) {
                 if (component.inputEl.isShown()) {
                     // The textarea is visible. I.e. it doesn't have "SC-hide" CSS class.

@@ -57,11 +57,6 @@ export abstract class SC_Modal extends Modal {
         return this._isOpen;
     }
 
-    public setTitle(title: string): this {
-        this.titleEl.innerText = title;
-        return this;
-    }
-
     /**
      * Called after a user presses the enter key (if approving modals by enter key press is enabled in settings). The purpose
      * of the method is to approve/perform the action the modal is asking/preparing. The method should then close the modal

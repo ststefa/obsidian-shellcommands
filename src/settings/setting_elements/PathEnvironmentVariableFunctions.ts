@@ -125,7 +125,7 @@ export function createPATHAugmentationFields(plugin: SC_Plugin, container_elemen
  * @param platformId
  */
 function getVerbosePATHSeparator(platformId: PlatformId) {
-    const exampleShell: Shell | undefined = getShellsForPlatform(platformId).first(); // Does not matter so much which shell it is, just need to get one that can give a path separator for demonstration purposes.
+    const exampleShell: Shell | undefined = getShellsForPlatform(platformId)[0]; // Does not matter so much which shell it is, just need to get one that can give a path separator for demonstration purposes.
     if (!exampleShell) {
         throw new Error("Was not able to get a shell for platform: " + platformId + ". A shell is needed for getting a path separator.");
     }

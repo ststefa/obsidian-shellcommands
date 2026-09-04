@@ -18,7 +18,10 @@
  */
 
 import SC_Plugin from "./main";
-import {newShellCommandConfiguration, ShellCommandConfiguration} from "./settings/ShellCommandConfiguration";
+import {
+    newShellCommandConfiguration,
+    ShellCommandConfiguration,
+} from "./settings/ShellCommandConfiguration";
 import {debugLog} from "./Debug";
 import * as fs from "fs";
 import {
@@ -33,12 +36,16 @@ import {
     CustomVariableModel,
 } from "./models/custom_variable/CustomVariableModel";
 import {getModel} from "./models/Model";
-import {OutputStream} from "./output_channels/OutputHandlerCode";
+import {
+    OutputHandlerConfigurations,
+    OutputStream,
+} from "./output_channels/OutputHandlerCode";
 import {OutputChannel} from "./output_channels/OutputChannel";
 import {PromptFieldModel} from "./models/prompt/prompt_fields/PromptFieldModel";
 import {PromptConfiguration} from "./models/prompt/Prompt";
 import {PromptFieldConfiguration} from "./models/prompt/prompt_fields/PromptField";
 import {ICON_MIGRATIONS} from "./Icons";
+import {DebounceConfiguration} from "./Debouncer";
 
 export async function RunMigrations(plugin: SC_Plugin) {
     const should_save = [ // If at least one of the values is true, saving will be triggered.
@@ -73,11 +80,10 @@ function MigrateDebouncingModes(plugin: SC_Plugin): boolean {
     let save: boolean = false;
     for (const shellCommandConfiguration of plugin.settings.shell_commands) {
         if (shellCommandConfiguration.debounce) {
-            // @ts-ignore
-            if (undefined !== shellCommandConfiguration.debounce.mode) {
+            const debounceConfiguration = shellCommandConfiguration.debounce as LegacyDebounceConfiguration;
+            if (undefined !== debounceConfiguration.mode) {
                 // Found a `mode` property that was present in SC 0.22.0-beta.1 .
-                // @ts-ignore
-                switch (shellCommandConfiguration.debounce.mode) {
+                switch (debounceConfiguration.mode) {
                     case "early-and-late-execution":
                         shellCommandConfiguration.debounce.executeEarly = true;
                         shellCommandConfiguration.debounce.executeLate = true;
@@ -91,20 +97,15 @@ function MigrateDebouncingModes(plugin: SC_Plugin): boolean {
                         shellCommandConfiguration.debounce.executeLate = true;
                         break;
                 }
-                // @ts-ignore
-                debugLog("Migration: Shell command #" + shellCommandConfiguration.id + " had a deprecated debounce.mode property (" + shellCommandConfiguration.debounce.mode + "). It was migrated to debounce.executeEarly (" + (shellCommandConfiguration.debounce.executeEarly ? "true" : "false") + ") and debounce.executeLate (" + (shellCommandConfiguration.debounce.executeLate ? "true" : "false") + ").");
-                // @ts-ignore
-                delete shellCommandConfiguration.debounce.mode;
+                debugLog("Migration: Shell command #" + shellCommandConfiguration.id + " had a deprecated debounce.mode property (" + debounceConfiguration.mode + "). It was migrated to debounce.executeEarly (" + (shellCommandConfiguration.debounce.executeEarly ? "true" : "false") + ") and debounce.executeLate (" + (shellCommandConfiguration.debounce.executeLate ? "true" : "false") + ").");
+                delete debounceConfiguration.mode;
                 save = true;
             }
             
-            // @ts-ignore
-            if (undefined !== shellCommandConfiguration.debounce.cooldown) {
+            if (undefined !== debounceConfiguration.cooldown) {
                 // `cooldown` was present in 0.22.0-beta.1, but renamed in 0.22.0-beta.2.
-                // @ts-ignore
-                shellCommandConfiguration.debounce.cooldownDuration = shellCommandConfiguration.debounce.cooldown;
-                // @ts-ignore
-                delete shellCommandConfiguration.debounce.cooldown;
+                shellCommandConfiguration.debounce.cooldownDuration = debounceConfiguration.cooldown;
+                delete debounceConfiguration.cooldown;
                 save = true;
             }
             
@@ -119,6 +120,15 @@ function MigrateDebouncingModes(plugin: SC_Plugin): boolean {
     return save;
 }
 
+type LegacyDebounceConfiguration = DebounceConfiguration & {
+    mode?: "early-and-late-execution" | "early-execution" | "late-execution";
+    cooldown?: number;
+}
+
+type LegacyShellCommandConfiguration = Omit<ShellCommandConfiguration, "output_handlers"> & {
+    output_handlers?: Partial<OutputHandlerConfigurations>;
+}
+
 /**
  * Can be removed in the future, but I haven't yet decided will it be done in 1.0 or later.
  */
@@ -127,9 +137,9 @@ function MigrateShellCommandsObjectToArray(plugin: SC_Plugin) {
     if (!Array.isArray(plugin.settings.shell_commands)) {
         // It is an object. It needs to be changed to an array in order to allow custom ordering.
         const shell_commands_array: ShellCommandConfiguration[] = [];
-        for (const shell_command_id of Object.getOwnPropertyNames(plugin.settings.shell_commands)) { // Remember that plugin.settings.shell_commands is an object here! Not an array (yet).
-            // @ts-ignore I don't know why TypeScript thinks the index is incorrect.
-            const shell_command_configuration: ShellCommandConfiguration = plugin.settings.shell_commands[shell_command_id];
+        const shellCommandsById = plugin.settings.shell_commands as unknown as Record<string, ShellCommandConfiguration>;
+        for (const shell_command_id of Object.getOwnPropertyNames(shellCommandsById)) { // Remember that plugin.settings.shell_commands is an object here! Not an array (yet).
+            const shell_command_configuration: ShellCommandConfiguration = shellCommandsById[shell_command_id];
 
             // Assign 'id' to ShellCommandConfiguration because it did not contain it before this migration.
             shell_command_configuration.id = shell_command_id;
@@ -199,19 +209,18 @@ function MigrateShellCommandOutputChannels(plugin: SC_Plugin): boolean {
     const shellCommandConfigurations = plugin.settings.shell_commands;
     for (const shellCommandConfiguration of shellCommandConfigurations) {
         let outputStream: OutputStream;
+        const legacyShellCommandConfiguration = shellCommandConfiguration as LegacyShellCommandConfiguration;
         // Iterate "stdout" and "stderr".
-        // @ts-ignore
-        if (shellCommandConfiguration.output_channels) {
-            for (outputStream in shellCommandConfiguration.output_channels) {
-                const outputChannel = shellCommandConfiguration.output_channels[outputStream];
+        if (legacyShellCommandConfiguration.output_channels) {
+            for (outputStream in legacyShellCommandConfiguration.output_channels) {
+                const outputChannel = legacyShellCommandConfiguration.output_channels[outputStream];
                 debugLog("Shell command #" + shellCommandConfiguration.id + ": Migrating output stream " + outputStream + " to use a configuration object.");
-                if (!shellCommandConfiguration.output_handlers) {
-                    // @ts-ignore Don't yell about the empty object, it will soon have content.
-                    shellCommandConfiguration.output_handlers = {};
+                if (!legacyShellCommandConfiguration.output_handlers) {
+                    legacyShellCommandConfiguration.output_handlers = {};
                 }
-                shellCommandConfiguration.output_handlers[outputStream] = OutputChannel.getDefaultConfiguration(outputChannel);
+                legacyShellCommandConfiguration.output_handlers[outputStream] = OutputChannel.getDefaultConfiguration(outputChannel);
             }
-            delete shellCommandConfiguration.output_channels;
+            delete legacyShellCommandConfiguration.output_channels;
             save = true;
         }
     }
@@ -229,16 +238,15 @@ function EnsureShellCommandsHaveAllFields(plugin: SC_Plugin) {
     const shell_command_default_configuration = newShellCommandConfiguration("no-id"); // Use a dummy id here, because something needs to be used. This id should never end up being used in practice.
     const shell_command_configurations = plugin.settings.shell_commands;
     for (const shell_command_configuration of shell_command_configurations) {
-        for (const property_name in shell_command_default_configuration) {
-            // @ts-ignore property_default_value can have (almost) whatever datatype
-            const property_default_value = shell_command_default_configuration[property_name];
-            // @ts-ignore
-            if (undefined === shell_command_configuration[property_name] && property_name !== "id") { // The "id" check is just in case that MigrateShellCommandsObjectToArray() would not have added the "id" property, in which case the dummy "no-id" id should not be accidentally assigned to the shell command.
+        const shellCommandRecord = shell_command_configuration as unknown as Record<string, unknown>;
+        const defaultRecord = shell_command_default_configuration as unknown as Record<string, unknown>;
+        for (const property_name in defaultRecord) {
+            const property_default_value = defaultRecord[property_name];
+            if (undefined === shellCommandRecord[property_name] && property_name !== "id") { // The "id" check is just in case that MigrateShellCommandsObjectToArray() would not have added the "id" property, in which case the dummy "no-id" id should not be accidentally assigned to the shell command.
                 // This shell command does not have this property.
                 // Add the property to the shell command and use a default value.
                 debugLog("EnsureShellCommandsHaveAllFields(): Shell command #" + shell_command_configuration.id + " does not have a property '" + property_name + "'. Will create the property and assign a default value '" + property_default_value + "'.");
-                // @ts-ignore
-                shell_command_configuration[property_name] = property_default_value;
+                shellCommandRecord[property_name] = property_default_value;
                 save = true;
             }
         }
@@ -252,16 +260,15 @@ function EnsureCustomVariablesHaveAllFields(plugin: SC_Plugin) {
     const customVariableDefaultConfiguration: CustomVariableConfiguration = customVariableModel.getDefaultConfiguration();
     let customVariableConfiguration: CustomVariableConfiguration;
     for (customVariableConfiguration of plugin.settings.custom_variables) {
-        for (const propertyName in customVariableDefaultConfiguration) {
-            // @ts-ignore propertyDefaultValue can have (almost) whatever datatype
-            const propertyDefaultValue = customVariableDefaultConfiguration[propertyName];
-            // @ts-ignore
-            if (undefined === customVariableConfiguration[propertyName]) {
+        const customVariableRecord = customVariableConfiguration as unknown as Record<string, unknown>;
+        const defaultRecord = customVariableDefaultConfiguration as unknown as Record<string, unknown>;
+        for (const propertyName in defaultRecord) {
+            const propertyDefaultValue = defaultRecord[propertyName];
+            if (undefined === customVariableRecord[propertyName]) {
                 // This custom variable does not have this property.
                 // Add the property to it and use a default value.
                 debugLog("EnsureCustomVariablesHaveAllFields(): Custom variable #" + customVariableConfiguration.id + " does not have a property '" + propertyName + "'. Will create the property and assign a default value '" + propertyDefaultValue + "'.");
-                // @ts-ignore
-                customVariableConfiguration[propertyName] = propertyDefaultValue;
+                customVariableRecord[propertyName] = propertyDefaultValue;
                 save = true;
             }
         }
@@ -279,15 +286,14 @@ function EnsurePromptFieldsHaveAllFields(plugin: SC_Plugin) {
             const defaultPromptFieldConfiguration = promptFieldModel.getDefaultConfiguration(
                 promptFieldConfiguration.type ?? "single-line-text" // SC versions < 0.21.0 did not define 'type' property for prompt field configurations.
             );
-            for (const propertyName in defaultPromptFieldConfiguration) {
-                // @ts-ignore propertyDefaultValue can have (almost) whatever datatype
-                const propertyDefaultValue = defaultPromptFieldConfiguration[propertyName];
-                // @ts-ignore
-                if (undefined === promptFieldConfiguration[propertyName]) {
+            const promptFieldRecord = promptFieldConfiguration as unknown as Record<string, unknown>;
+            const defaultRecord = defaultPromptFieldConfiguration as unknown as Record<string, unknown>;
+            for (const propertyName in defaultRecord) {
+                const propertyDefaultValue = defaultRecord[propertyName];
+                if (undefined === promptFieldRecord[propertyName]) {
                     // This PromptField does not have this property.
                     debugLog("EnsurePromptFieldsHaveAllFields(): PromptField '" + promptFieldConfiguration.label + "' does not have a property '" + propertyName + "'. Will create the property and assign a default value '" + propertyDefaultValue + "'.");
-                    // @ts-ignore
-                    promptFieldConfiguration[propertyName] = propertyDefaultValue;
+                    promptFieldRecord[propertyName] = propertyDefaultValue;
                     save = true;
                 }
             }
@@ -306,12 +312,12 @@ function EnsureMainFieldsExist(plugin: SC_Plugin) {
     let has_missing_fields = false;
     const settings = plugin.settings;
     const default_settings = getDefaultSettings(false);
-    for (const property_name in default_settings) {
-        // @ts-ignore
-        if (undefined === settings[property_name]) {
+    const settingsRecord = settings as unknown as Record<string, unknown>;
+    const defaultSettingsRecord = default_settings as unknown as Record<string, unknown>;
+    for (const property_name in defaultSettingsRecord) {
+        if (undefined === settingsRecord[property_name]) {
             // The settings object does not have this property.
-            // @ts-ignore property_default_value can have (almost) whatever datatype
-            const property_default_value = default_settings[property_name];
+            const property_default_value = defaultSettingsRecord[property_name];
             debugLog("EnsureMainFieldsExist(): Main settings does not have property '" + property_name + "'. Will later create the property and assign a default value '" + property_default_value + "'.");
             has_missing_fields = true;
         }
@@ -398,7 +404,6 @@ function MigrateOldIconNames(plugin: SC_Plugin) {
  */
 function backupSettingsFile(plugin: SC_Plugin) {
     // plugin.app.fileManager.
-    // @ts-ignore
     const current_settings_version = (plugin.settings.settings_version === "prior-to-0.7.0") ? "0.x" : plugin.settings.settings_version;
     const plugin_path = getPluginAbsolutePath(plugin, isWindows());
     const settings_file_path = path.join(plugin_path, "data.json");

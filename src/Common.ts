@@ -36,9 +36,7 @@ import {platform} from "os";
 import * as path from "path";
 import {debugLog} from "./Debug";
 import SC_Plugin from "./main";
-// @ts-ignore
 import {shell} from "electron";
-// @ts-ignore Electron is installed.
 import {clipboard} from "electron";
 import * as fs from "fs";
 import * as process from "process";
@@ -100,11 +98,7 @@ export function isWindows() {
  * TODO: Consider renaming this to getCurrentPlatformId().
  */
 export function getOperatingSystem(): PlatformId  {
-    // @ts-ignore In theory, platform() can return an OS name not included in OperatingSystemName. But as Obsidian
-    // currently does not support anything else than Windows, Mac and Linux (except mobile platforms, but they are
-    // ruled out by the manifest of this plugin), it should be safe to assume that the current OS is one of those
-    // three.
-    return platform();
+    return platform() as PlatformId;
 }
 
 export function getCurrentPlatformName(): string {
@@ -149,23 +143,7 @@ export function getView(app: App) {
 }
 
 export function getEditor(app: App): Editor | null {
-
-    const view = getView(app);
-    if (null === view) {
-        // Could not get a view.
-        return null;
-    }
-
-    // Ensure that view.editor exists! It exists at least if this is a MarkDownView.
-    if ("editor" in view) {
-        // Good, it exists.
-        // @ts-ignore We already know that view.editor exists.
-        return view.editor;
-    }
-
-    // Did not find an editor.
-    debugLog("getEditor(): 'view' does not have a property named 'editor'. Will return null.");
-    return null;
+    return getView(app)?.editor ?? null;
 }
 
 export function cloneObject<ObjectType extends object>(object: ObjectType): ObjectType{
@@ -368,15 +346,7 @@ export function lookUpFileWithBinaryExtensionsOnWindows(filePath: string): boole
 }
 
 export function joinObjectProperties(object: object, glue: string) {
-    let result = "";
-    for (const property_name in object) {
-        if (result.length) {
-            result += glue;
-        }
-        // @ts-ignore
-        result += object[property_name];
-    }
-    return result;
+    return Object.values(object).join(glue);
 }
 
 /**
@@ -580,7 +550,8 @@ export function escapeMarkdownLinkCharacters(content: string) {
 }
 
 export function copyToClipboard(text: string): Promise<void> {
-    return clipboard.writeText(text);
+    clipboard.writeText(text);
+    return Promise.resolve();
 }
 
 export function cloakPassword(password: string): string {

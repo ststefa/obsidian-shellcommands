@@ -31,21 +31,18 @@ import {TShellCommand} from "../TShellCommand";
 
 export abstract class SC_VaultEvent extends SC_Event {
     protected abstract readonly vault_event:
-        // TODO: Find a way to make this list dynamic.
-        // This list reflects Obsidian API version 0.12.11.
         | "create"
         | "modify"
         | "delete"
         | "rename"
-        | "closed" // Not implement by any SC_Event_* class, because I'm not sure if this event is needed. But can be implemented if need be. 2024-02-10: I can't see this event anymore in the Vault class in obsidian.d.ts for Obsidian 1.4.0.
     ;
     protected abstract file_or_folder: "file" | "folder";
     protected file: TFile; // TODO: Create a new class EventOccurrence and move `file` and `folder` properties there, to avoid simultaneous event occurrences affecting each others' properties. (`file_or_folder` should be kept here as it's not occurrence related).
     protected folder: TFolder;
 
     protected _register(t_shell_command: TShellCommand): false | EventRef {
-        // @ts-ignore TODO: Find a way to get a dynamic type for this.vault_event .
-        return this.app.vault.on(this.vault_event, this.getTrigger(t_shell_command));
+        const registerVaultEvent = this.app.vault.on as (name: typeof this.vault_event, callback: ReturnType<typeof this.getTrigger>) => EventRef;
+        return registerVaultEvent(this.vault_event, this.getTrigger(t_shell_command));
     }
 
     protected _unregister(event_reference: EventRef): void {

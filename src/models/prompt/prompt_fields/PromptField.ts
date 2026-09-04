@@ -250,8 +250,7 @@ export class PromptField extends Instance {
             }
                 
             default:
-                // @ts-ignore Do not yell when the switch covers all type cases. Ignores this error: TS2339: Property 'type' does not exist on type 'never'.
-                throw new Error("Unidentified PromptField type: " + this.configuration.type);
+                throw new Error("Unidentified PromptField type: " + JSON.stringify(this.configuration satisfies never));
         }
     }
 
@@ -335,8 +334,7 @@ export class PromptField extends Instance {
                 break;
             }
             default:
-                // @ts-ignore Do not yell when the switch covers all type cases. Ignores this error: TS2339: Property 'type' does not exist on type 'never'.
-                throw new Error("Unidentified PromptField type: " + this.configuration.type);
+                throw new Error("Unidentified PromptField type: " + JSON.stringify(this.configuration satisfies never));
         }
     }
 
@@ -487,8 +485,7 @@ export class PromptField extends Instance {
                 (this.fieldComponent as DropdownComponent).selectEl.focus();
                 break;
             default:
-                // @ts-ignore Do not yell when the switch covers all type cases. Ignores this error: TS2339: Property 'type' does not exist on type 'never'.
-                throw new Error("Unidentified PromptField type: " + this.configuration.type);
+                throw new Error("Unidentified PromptField type: " + JSON.stringify(this.configuration satisfies never));
         }
     }
     

@@ -90,10 +90,11 @@ export class OutputChannel_AssignCustomVariables extends OutputChannel {
         }
         
         // Get all CustomVariables.
+        const assignableVariableMap = assignableVariables as Record<string, unknown>;
         const customVariables: VariableSet = this.plugin.getCustomVariables();
         
         let showReceivedJSON = false; // Becomes true if any errors occur. In case of errors with multiple variables/JSON properties, avoid showing the whole JSON repeatedly.
-        for (const assignableVariableName of Object.getOwnPropertyNames(assignableVariables)) {
+        for (const assignableVariableName of Object.getOwnPropertyNames(assignableVariableMap)) {
             // 1. Check the variable name's format generally.
             if (!assignableVariableName.match(CustomVariable.getCustomVariableValidNameRegex(true))) {
                 // Malformed CustomVariable name.
@@ -112,8 +113,7 @@ export class OutputChannel_AssignCustomVariables extends OutputChannel {
                 if (customVariable.getFullName() === "{{" + assignableVariableName + "}}") {
                     // Found the variable.
                     variableFound = true;
-                    // @ts-ignore assignableVariables[assignableVariableName] is assigned.
-                    const assignableVariableValue: unknown = assignableVariables[assignableVariableName];
+                    const assignableVariableValue: unknown = assignableVariableMap[assignableVariableName];
                     if (typeof assignableVariableValue === "string") {
                         // The value can be assigned to the variable.
                         await customVariable.setValue(assignableVariableValue, "output");

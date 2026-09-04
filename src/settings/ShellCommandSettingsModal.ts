@@ -17,7 +17,6 @@
  * Contact the author (Jarkko Linnanvirta): https://github.com/Taitava/
  */
 
-// @ts-ignore
 import {
     IconName,
     sanitizeHTMLToDom,
@@ -546,7 +545,7 @@ export class ShellCommandSettingsModal extends SC_Modal {
         const defaultSettingGroup: SettingFieldGroup = this.newDefaultShellCommandContentSetting(container_element, () => {
             // When the default shell command content changes, update placeholders of platform specific shell command fields.
             for (const settingGroup of platformSpecificSettingGroups.values()) {
-                const textareaComponent: TextAreaComponent | undefined = settingGroup.shell_command_setting.components.first() as TextAreaComponent | undefined;
+                const textareaComponent: TextAreaComponent | undefined = settingGroup.shell_command_setting.components[0] as TextAreaComponent | undefined;
                 if (textareaComponent) {
                     textareaComponent.setPlaceholder(this.t_shell_command.getDefaultShellCommand());
                     textareaComponent.onChanged(); // Update textarea dimensions.
@@ -554,7 +553,7 @@ export class ShellCommandSettingsModal extends SC_Modal {
             }
             
             // Update the shell command content on the main settings modal.
-            const mainModalShellCommandTextareaComponent: TextAreaComponent | undefined = this.setting_tab.setting_groups[this.shell_command_id].shell_command_setting.components.first() as TextAreaComponent | undefined;
+            const mainModalShellCommandTextareaComponent: TextAreaComponent | undefined = this.setting_tab.setting_groups[this.shell_command_id].shell_command_setting.components[0] as TextAreaComponent | undefined;
             if (mainModalShellCommandTextareaComponent) {
                 mainModalShellCommandTextareaComponent.setValue(this.t_shell_command.getDefaultShellCommand());
                 mainModalShellCommandTextareaComponent.onChanged(); // Update textarea dimensions.

@@ -74,14 +74,15 @@ export function createExecutionNotificationField(
             .addOptions(executionNotificationOptions)
             .setValue((currentValue === null) ? "default" : currentValue)
             .onChange((newExecutionNotificationMode: string) => {
+                let changedValue: ExecutionNotificationMode | null;
                 if ("default" === newExecutionNotificationMode && defaultValue !== false) {
                     // Change 'default' to null.
-                    // @ts-ignore Null is allowed in the onChange() function's signature.
-                    onChange(null);
+                    changedValue = null;
                 } else {
                     // newExecutionNotificationMode is a real ExecutionNotificationMode value.
-                    onChange(newExecutionNotificationMode as ExecutionNotificationMode);
+                    changedValue = newExecutionNotificationMode as ExecutionNotificationMode;
                 }
+                (onChange as (newExecutionNotificationMode: ExecutionNotificationMode | null) => void)(changedValue);
             }),
         )
     ;
