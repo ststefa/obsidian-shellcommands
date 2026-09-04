@@ -58,7 +58,7 @@ export abstract class EventVariable extends Variable {
             // The variable supports all events.
             return true;
         }
-        return this.supported_sc_events.contains(sc_event_class);
+        return this.supported_sc_events.includes(sc_event_class);
     }
 
     private getSummaryOfSupportedEvents(): string {

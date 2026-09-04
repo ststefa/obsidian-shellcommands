@@ -20,14 +20,14 @@
 import {Hotkey, Modifier, Platform} from "obsidian";
 import SC_Plugin from "./main";
 import {debugLog} from "./Debug";
+import {AppWithHotkeyManager} from "./ObsidianPrivateApi";
 
 /**
  * TODO: Move this to TShellCommand.
  */
 export function getHotkeysForShellCommand(plugin: SC_Plugin, shell_command_id: string): Hotkey[] {
     // Retrieve all hotkeys set by user.
-    // @ts-ignore PRIVATE API
-    const app_custom_hotkeys = plugin.app.hotkeyManager?.customKeys;
+    const app_custom_hotkeys = (plugin.app as AppWithHotkeyManager).hotkeyManager?.customKeys;
     if (!app_custom_hotkeys) {
         debugLog("getHotkeysForShellCommand() failed, will return an empty array.");
         return [];

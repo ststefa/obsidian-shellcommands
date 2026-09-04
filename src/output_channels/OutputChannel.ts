@@ -212,7 +212,7 @@ export abstract class OutputChannel {
     }
 
     public static acceptsOutputStream(output_stream: OutputStream) {
-        return this.accepted_output_streams.contains(output_stream);
+        return this.accepted_output_streams.includes(output_stream);
     }
 
     /**

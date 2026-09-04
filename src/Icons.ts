@@ -72,7 +72,7 @@ export const SORTED_ICON_LIST: SC_Icon[] = unsortedIconList.sort((iconA: SC_Icon
  * ```TypeScript
  *         const iconComparison: string[] = [];
  *         for (const oldIcon of AUGMENTED_ICON_LIST) {
- *             if (getIconIds().contains(oldIcon)) {
+ *             if (getIconIds().includes(oldIcon)) {
  *                 iconComparison.push(oldIcon + " = OK");
  *             }
  *             else {

@@ -239,7 +239,7 @@ export class ParsingProcess<ParsingMap extends {[key: string]: string}> {
      * @private
      */
     private avoidEscaping(content_key: keyof ParsingMap): boolean {
-        return this.avoid_escaping.contains(content_key);
+        return this.avoid_escaping.includes(content_key);
     }
 }
 

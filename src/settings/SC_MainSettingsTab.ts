@@ -66,6 +66,7 @@ import {createVariableDefaultValueField} from "./setting_elements/createVariable
 import {CustomShellModel} from "../models/custom_shell/CustomShellModel";
 import {CustomShellInstance} from "../models/custom_shell/CustomShellInstance";
 import {createExecutionNotificationField} from "./setting_elements/createExecutionNotificationField";
+import {AppWithSettings} from "../ObsidianPrivateApi";
 
 /**
  * TODO: Rename to MainSettingsModal. Then it better in line with ShellCommandSettingsModal.
@@ -249,7 +250,7 @@ export class SC_MainSettingsTab extends PluginSettingTab {
 
                             // Check if it's a match
                             search_targets.forEach((search_target: string) => {
-                                if (search_target.toLocaleLowerCase().contains(search_term.toLocaleLowerCase())) {
+                                if (search_target.toLocaleLowerCase().includes(search_term.toLocaleLowerCase())) {
                                     matched = true;
                                     debugLog("Search " + search_term + " MATCHED " + search_target);
                                 }
@@ -696,9 +697,7 @@ export class SC_MainSettingsTab extends PluginSettingTab {
                 .setTooltip("Manage Obsidian's Monospace font")
                 .onClick(() => {
                     // Go to Appearance -> "Monospace font" setting.
-                    
-                    // @ts-ignore This is PRIVATE API access. Not good, but then again the feature is not crucial - if it breaks, it won't interrupt anything important.
-                    const appearanceTabOpened = this.plugin.app.setting?.openTabById?.("appearance");
+                    const appearanceTabOpened = (this.plugin.app as AppWithSettings).setting?.openTabById?.("appearance");
                     
                     if (appearanceTabOpened) {
                         // Try to look for the monospace font setting. This is a bit quirky and might not work if Obsidian changes the setting's name (or if user has other display language than English).

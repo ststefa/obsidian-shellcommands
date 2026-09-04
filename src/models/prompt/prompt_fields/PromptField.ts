@@ -396,7 +396,7 @@ export class PromptField extends Instance {
             "single-choice",  // If type is "single-choice", variables are already parsed in the field's options.
             "password", // Passwords are static.
         ];
-        const doParseVariables = !dontParseFieldTypes.contains(this.configuration.type);
+        const doParseVariables = !dontParseFieldTypes.includes(this.configuration.type);
         if (doParseVariables) {
             // Parse variables in the value.
             const parsing_result = await parseVariables(

@@ -119,13 +119,13 @@ export class OutputWrapperModel extends Model {
         for (const shell_command_id in shell_commands) {
             const t_shell_command = shell_commands[shell_command_id];
             const output_wrappers = t_shell_command.getConfiguration().output_wrappers;
-            Object.each(output_wrappers, (output_wrapper_id: string | null, output_stream?: string) => {
+            for (const [output_stream, output_wrapper_id] of Object.entries(output_wrappers)) {
                 if (output_wrapper_id === deletable_output_wrapper.getID()) {
                     // A shell command uses the output wrapper that is about to be deleted.
                     // Configure the shell command not to use any output wrapper.
                     output_wrappers[output_stream as OutputStream] = null;
                 }
-            });
+            }
         }
 
         // Remove the OutputWrapper from this class's internal list.

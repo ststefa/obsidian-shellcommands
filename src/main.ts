@@ -90,6 +90,7 @@ import {
     CustomShellModel,
 } from "./models/custom_shell/CustomShellModel";
 import {Extension} from "@codemirror/state";
+import {AppWithPluginManager} from "./ObsidianPrivateApi";
 
 export default class SC_Plugin extends Plugin {
 	/**
@@ -679,8 +680,11 @@ export default class SC_Plugin extends Plugin {
 
 	private async disablePlugin() {
 		// This unfortunately accesses a private API.
-		// @ts-ignore PRIVATEAPI
-		await this.app.plugins.disablePlugin(this.manifest.id);
+		const pluginManager = (this.app as AppWithPluginManager).plugins;
+		if (!pluginManager) {
+			throw new Error("Cannot disable the plugin because Obsidian's plugin manager API is unavailable.");
+		}
+		await pluginManager.disablePlugin(this.manifest.id);
 	}
 
 	public getPluginId() {
@@ -830,4 +834,3 @@ export default class SC_Plugin extends Plugin {
         };
     }
 }
-

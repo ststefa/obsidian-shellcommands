@@ -94,7 +94,7 @@ export abstract class BuiltinShell extends Shell {
                 throw new Error("process.env does not contain '" + getPATHEnvironmentVariableName() + "'.");
             }
             let augmentedPath: string;
-            if (pathAugmentation.contains(originalPath)) {
+            if (pathAugmentation.includes(originalPath)) {
                 // The augmentation contains the original PATH.
                 // Simply replace the whole original PATH with the augmented one, as there's no need to care about including
                 // the original content.

@@ -43,6 +43,7 @@ import {
     ShellCommandExecutor,
 } from "../../imports";
 import {SC_MainSettingsTab} from "../SC_MainSettingsTab";
+import {AppWithSettings} from "../../ObsidianPrivateApi";
 
 /**
  * Creates a shell command textarea (by calling createShellCommandFieldCore()) and related control buttons.
@@ -242,17 +243,13 @@ export function createShellCommandField(
             .onClick(() => {
                 // The most important parts of this closure function are copied 2022-04-27 from https://github.com/pjeby/hotkey-helper/blob/c8a032e4c52bd9ce08cb909cec15d1ed9d0a3439/src/plugin.js#L436-L442 (also from other lines of the same file).
 
-                // @ts-ignore This is PRIVATE API access. Not good, but then again the feature is not crucial - if it breaks, it won't interrupt anything important.
-                plugin.app.setting?.openTabById("hotkeys");
+                const appSettings = plugin.app as AppWithSettings;
+                appSettings.setting?.openTabById?.("hotkeys");
 
-                // @ts-ignore
-                const hotkeys_settings_tab = plugin.app.setting.settingTabs.filter(tab => tab.id === "hotkeys").shift();
+                const hotkeys_settings_tab = appSettings.setting?.settingTabs?.find(tab => tab.id === "hotkeys");
                 const searchErrorMessage = "Shell command hotkey search failed due to a private API change in the hotkey search. Please start a discussion in the SC plugin's GitHub repo.";
                 if (hotkeys_settings_tab) {
-                    const hotkeySearchElement =
-                        hotkeys_settings_tab.searchInputEl ??        // For Obsidian versions before 1.2.0.
-                        hotkeys_settings_tab.searchComponent.inputEl // For Obsidian version 1.2.0 and onwards.
-                    ;
+                    const hotkeySearchElement = hotkeys_settings_tab.searchComponent?.inputEl;
                     if (hotkeySearchElement && hotkeys_settings_tab.updateHotkeyVisibility) {
                         debugLog("Hotkeys: Filtering by shell command " + t_shell_command.getObsidianCommand().name);
                         hotkeySearchElement.value = t_shell_command.getObsidianCommand().name;

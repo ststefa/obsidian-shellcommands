@@ -368,7 +368,7 @@ export class PromptFieldModel extends Model {
                             // Save changed choices.
                             promptFieldConfiguration.choices = [];
                             for (const choice of newChoices.split("\n")) {
-                                if (choice.contains("|")) {
+                                if (choice.includes("|")) {
                                     // The option defines a separate value and label.
                                     const choiceParts: string[] = choice.split("|");
                                     const choiceValue = choiceParts.shift() as string;

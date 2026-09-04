@@ -122,8 +122,6 @@ export class OutputChannel_Notification extends OutputChannel {
         }
 
         // Terminating button
-        // @ts-ignore Notice.noticeEl belongs to Obsidian's PRIVATE API, and it may change without a prior notice. Only
-        // create the button if noticeEl exists and is an HTMLElement.
         const noticeEl = this.realtimeNotice.noticeEl;
         if (null === this.processTerminator) {
             throw new Error("Process terminator is not set, although it should be set when handling output in realtime mode.");
@@ -148,8 +146,6 @@ export class OutputChannel_Notification extends OutputChannel {
         }
 
         // Remove terminating button
-        // @ts-ignore Notice.noticeEl belongs to Obsidian's PRIVATE API, and it may change without a prior notice. Only
-        // create the button if noticeEl exists and is an HTMLElement.
         const noticeEl = this.realtimeNotice?.noticeEl;
         if (undefined !== noticeEl && noticeEl instanceof HTMLElement) {
             noticeEl.find(".SC-icon-terminate-process")?.remove(); // ? = Only try to remove if the button exists. It does not exist if .setMessage() was called above as it overwrites all content in the Notice.
@@ -185,12 +181,8 @@ export class OutputChannel_Notification extends OutputChannel {
     }
 
     private static formatErrorMessage(outputContent: string, exitCode: number | null): string {
-        if (null === exitCode) {
-            // If a "realtime" process is not finished, there is no exit code yet.
-            // @ts-ignore Yea I know "..." is not a number nor null. :)
-            exitCode = "...";
-        }
-        return "[" + exitCode + "]: " + outputContent;
+        const exitCodeDisplay = null === exitCode ? "..." : exitCode;
+        return "[" + exitCodeDisplay + "]: " + outputContent;
     }
 
     private handleNotificationHiding(outputStreamName: OutputStream) {
@@ -216,9 +208,7 @@ export class OutputChannel_Notification extends OutputChannel {
         );
 
         // Subscribe to Notice's click event.
-        // @ts-ignore Notice.noticeEl belongs to Obsidian's PRIVATE API, and it may change without a prior notice. Only
-        // define the click listener if noticeEl exists and is an HTMLElement.
-        const noticeEl = this.realtimeNotice.noticeEl;
+        const noticeEl = this.realtimeNotice?.noticeEl;
         if (undefined !== noticeEl && noticeEl instanceof HTMLElement) {
             noticeEl.onClickEvent(() => {
                 window.clearTimeout(this.realtimeNoticeTimeout); // Make sure timeout will not accidentally try to later hide an already hidden Notification.

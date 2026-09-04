@@ -18,6 +18,7 @@
  */
 
 import {Variable} from "./Variable";
+import {AppWithInternalPlugins} from "../ObsidianPrivateApi";
 
 export class Variable_Workspace extends Variable{
     public variable_name = "workspace";
@@ -27,8 +28,7 @@ export class Variable_Workspace extends Variable{
 
     protected async generateValue(): Promise<string> {
         // Idea how to access the workspaces plugin is copied 2021-09-15 from https://github.com/Vinzent03/obsidian-advanced-uri/blob/f7ef80d5252481242e69496208e925874209f4aa/main.ts#L168-L179
-        // @ts-ignore internalPlugins exists, although it's not in obsidian.d.ts. PRIVATE API
-        const workspaces_plugin = this.app.internalPlugins?.plugins?.workspaces;
+        const workspaces_plugin = (this.app as AppWithInternalPlugins).internalPlugins?.plugins?.workspaces;
         if (!workspaces_plugin) {
             this.throw("Workspaces core plugin is not found for some reason. Please create a discussion in GitHub.");
         } else if (!workspaces_plugin.enabled) {

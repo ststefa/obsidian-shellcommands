@@ -353,7 +353,7 @@ export class ShellCommandExecutor {
                     debugLog("Command executed and failed. Error number: " + exitCode + ". Stderr: " + stderr);
     
                     // Check if this error should be displayed to the user or not
-                    if (null !== exitCode && this.t_shell_command.getIgnoreErrorCodes().contains(exitCode)) {
+                    if (null !== exitCode && this.t_shell_command.getIgnoreErrorCodes().includes(exitCode)) {
                         // The user has ignored this error.
                         debugLog("User has ignored this error, so won't display it.");
     
@@ -373,7 +373,7 @@ export class ShellCommandExecutor {
                     // Even when 'error' is null and everything should be ok, there may still be error messages outputted in stderr.
                     if (stderr.length > 0) {
                         // Check a special case: should error code 0 be ignored?
-                        if (this.t_shell_command.getIgnoreErrorCodes().contains(0)) {
+                        if (this.t_shell_command.getIgnoreErrorCodes().includes(0)) {
                             // Exit code 0 is on the ignore list, so suppress stderr output.
                             stderr = "";
                             debugLog("Shell command executed: Encountered error code 0, but stderr is ignored.");
@@ -520,8 +520,6 @@ export class ShellCommandExecutor {
         processTerminator: () => void,
     ) {
         const createRequestTerminatingButton = (notice: Notice) => {
-            // @ts-ignore Notice.noticeEl belongs to Obsidian's PRIVATE API, and it may change without a prior notice. Only
-            // create the button if noticeEl exists and is an HTMLElement.
             const noticeEl = notice.noticeEl;
             if (undefined !== noticeEl && noticeEl instanceof HTMLElement) {
                 this.plugin.createRequestTerminatingButton(noticeEl, processTerminator);

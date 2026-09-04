@@ -188,7 +188,7 @@ function find_starting_position(typed_text: string, supplement: string) {
     supplement = supplement.toLocaleLowerCase();
     for (let supplement_index = supplement.length; supplement_index >= 0; supplement_index--) {
         const partial_supplement = supplement.slice(0, supplement_index);
-        if (typed_text.contains(partial_supplement)) {
+        if (typed_text.includes(partial_supplement)) {
             return typed_text.indexOf(partial_supplement);
         }
     }
@@ -358,16 +358,16 @@ function get_search_query(typed_text: string): IAutocompleteSearchQuery {
     let search_text = searchTextMatchArray[0]; // Reduce the text - limit to a single word (= exclude spaces and everything before them).
     let search_type: AutocompleteSearchQueryType = "other"; // May be overwritten.
 
-    if (search_text.contains("}}")) {
+    if (search_text.includes("}}")) {
         // The query happens right after a {{variable}}.
         // Make the query string to start after the }} pair, i.e. remove }} and everything before it. This improves the search.
         search_text = search_text.replace(/.+\}\}/u, "");
     }
-    if (search_text.contains("{{")) {
+    if (search_text.includes("{{")) {
         // A {{variable}} is being queried.
         // Make the query string to start from the {{ pair, i.e. remove everything before {{ . This improves the search.
         search_text = search_text.replace(/.+\{\{/u, "{{");
-        if (search_text.contains("{{!")) {
+        if (search_text.includes("{{!")) {
             // An _unescaped_ variable is searched for.
             search_type = "unescaped-variable";
         } else {

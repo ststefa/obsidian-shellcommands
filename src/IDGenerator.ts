@@ -52,7 +52,7 @@ export class IDGenerator {
     }
 
     private isIDReserved(id: string): boolean {
-        return this.reserved_ids.contains(id);
+        return this.reserved_ids.includes(id);
     }
 }
 
