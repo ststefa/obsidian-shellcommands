@@ -67,6 +67,7 @@ import {
     DebounceConfiguration,
     Debouncer,
 } from "./Debouncer";
+import {parseCurrentFileVariablesSynchronously} from "./variables/parseCurrentFileVariablesSynchronously";
 
 export interface TShellCommandContainer {
     [key: string]: TShellCommand,
@@ -81,6 +82,7 @@ export class TShellCommand extends Cacheable {
     private configuration: ShellCommandConfiguration;
     private obsidian_command: Command;
     private debouncer: Debouncer | null = null;
+    private commandPalettePreviewRevision = 0;
 
     constructor (plugin: SC_Plugin, configuration: ShellCommandConfiguration) {
         super();
@@ -282,6 +284,14 @@ export class TShellCommand extends Cacheable {
         const parsedShellCommand: string = shellCommandParsingResult.parsed_content as string;
         const parsedAlias: string = aliasParsingResult.parsed_content as string;
         return parsedAlias ? parsedAlias : parsedShellCommand;
+    }
+
+    public getCommandPalettePreviewContent(): string {
+        return parseCurrentFileVariablesSynchronously(
+            this.plugin.app,
+            this.getShell(),
+            this.getAliasOrShellCommand(),
+        );
     }
 
     public getConfirmExecution() {
@@ -557,48 +567,34 @@ export class TShellCommand extends Cacheable {
                     
                     // Do not execute the command yet, but parse variables for preview, if enabled in the settings.
                     debugLog("Getting command palette preview for shell command #" + this.getId());
-                    if (this.plugin.settings.preview_variables_in_command_palette) {
-                        // Preparse variables
+                    const previewRevision = ++this.commandPalettePreviewRevision;
+                    const rawPreviewContent = this.getAliasOrShellCommand();
+                    const commandPalettePreviewContent = this.getCommandPalettePreviewContent();
+                    this.renameObsidianCommand(commandPalettePreviewContent);
+                    if (this.plugin.settings.preview_variables_in_command_palette && commandPalettePreviewContent === rawPreviewContent) {
                         const parsing_process = this.createParsingProcess(null); // No SC_Event is available when executing shell commands via the command palette / hotkeys.
                         parsing_process.process().then((parsing_succeeded) => {
+                            if (previewRevision !== this.commandPalettePreviewRevision) {
+                                debugLog("Ignoring obsolete command palette preview for shell command #" + this.getId());
+                                return;
+                            }
+
                             if (parsing_succeeded) {
                                 // Parsing succeeded
-                                
+
                                 // Rename Obsidian command
                                 this.renameObsidianCommand(TShellCommand.getAliasOrShellCommandContentFromParsingResult(parsing_process));
-                                
-                                // Store the preparsed variables so that they will be used if this shell command gets executed.
-                                this.plugin.cached_parsing_processes[this.getId()] = parsing_process;
                             } else {
-                                // Parsing failed, so use unparsed this.getAliasOrShellCommand().
-                                this.renameObsidianCommand(this.getAliasOrShellCommand());
-                                this.plugin.cached_parsing_processes[this.getId()] = undefined;
+                                debugLog("Command palette preview parsing failed for shell command #" + this.getId() + ". Keeping synchronous preview name.");
                             }
                         });
-                    } else {
-                        // Parsing is disabled, so use unparsed this.getAliasOrShellCommand().
-                        this.renameObsidianCommand(this.getAliasOrShellCommand());
-                        this.plugin.cached_parsing_processes[this.getId()] = undefined;
                     }
                     
                     return true; // Tell Obsidian this command can be shown in command palette.
                     
                 } else {
                     // The user has instructed to execute the command.
-                    this.executeOrShowErrors(
-                        this.plugin.cached_parsing_processes[this.getId()], // Can be undefined, if no preparsing was done. executor() will handle creating the parsing process then.
-                    ).then(() => {
-                        
-                        // Delete the whole array of preparsed commands. Even though we only used just one command from it, we need to notice that opening a command
-                        // palette might generate multiple preparsed commands in the array, but as the user selects and executes only one command, all these temporary
-                        // commands are now obsolete. Delete them just in case the user toggles the variable preview feature off in the settings, or executes commands via hotkeys. We do not want to
-                        // execute obsolete commands accidentally.
-                        // This deletion also needs to be done even if the executed command was not a preparsed command, because
-                        // even when preparsing is turned on in the settings, some commands may fail to parse, and therefore they would not be in this array, but other
-                        // commands might be.
-                        this.plugin.cached_parsing_processes = {}; // Removes obsolete preparsed variables from all shell commands.
-                        return; // When we are not in the command palette check phase, there's no need to return a value. Just have this 'return' statement because all other return points have a 'return' too.
-                    });
+                    void this.executeOrShowErrors(undefined);
                 }
             },
         };

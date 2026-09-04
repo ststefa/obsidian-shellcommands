@@ -17,23 +17,11 @@
  * Contact the author (Jarkko Linnanvirta): https://github.com/Taitava/
  */
 
-import {Variable} from "./Variable";
-import {TFile} from "obsidian";
-import {getCurrentFile} from "./getCurrentFile";
+import {
+    App,
+    TFile,
+} from "obsidian";
 
-export abstract class FileVariable extends Variable {
-
-    protected always_available = false;
-
-    protected getFileOrThrow(): TFile | never {
-        const currentFile = getCurrentFile(this.app);
-        if (!currentFile) {
-            this.throw("No file is active at the moment. Open a file or click a pane that has a file open.");
-        }
-        return currentFile;
-    }
-
-    public getAvailabilityText(): string {
-        return "<strong>Only available</strong> when the active pane contains a file, not in graph view or other non-file view.";
-    }
+export function getCurrentFile(app: App): TFile | null {
+    return app.workspace.activeEditor?.file ?? app.workspace.getActiveFile();
 }

@@ -24,6 +24,7 @@ import {
 import {IAutocompleteItem} from "../settings/setting_elements/Autocomplete";
 import {getFolderPath} from "./VariableHelpers";
 import {Shell} from "../shells/Shell";
+import {getCurrentFile} from "./getCurrentFile";
 
 export class Variable_NewNoteFolderPath extends Variable {
     public variable_name = "new_note_folder_path";
@@ -40,7 +41,7 @@ export class Variable_NewNoteFolderPath extends Variable {
         shell: Shell,
         castedArguments: {mode: "absolute" | "relative"},
         ): Promise<string> {
-        const current_file = this.app.workspace.getActiveFile(); // Needed just in case new notes should be created in the same folder as the currently open file.
+        const current_file = getCurrentFile(this.app); // Needed just in case new notes should be created in the same folder as the currently open file.
         const folder = this.app.fileManager.getNewFileParent(current_file ? current_file.path : ""); // If no file is open, use an empty string as instructed in .getNewFileParent()'s documentation.
         if (folder) {
             return getFolderPath(this.app, shell, folder, castedArguments.mode);

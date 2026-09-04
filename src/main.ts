@@ -60,7 +60,6 @@ import {SC_MainSettingsTab} from "./settings/SC_MainSettingsTab";
 import * as path from "path";
 import * as fs from "fs";
 import {
-    ShellCommandParsingProcess,
     TShellCommand,
     TShellCommandContainer,
     TShellCommandMap,
@@ -109,19 +108,6 @@ export default class SC_Plugin extends Plugin {
     private customShellInstances: CustomShellInstanceMap;
 	private variables: VariableSet;
     private output_wrappers: OutputWrapperMap;
-
-	/**
-	 * Holder for shell commands and aliases, whose variables are parsed before the actual execution during command
-	 * palette preview. This array gets emptied after every time a shell command is executed via the command palette.
-	 *
-	 * This is only used for command palette, not when executing a shell command from the settings panel, nor when
-	 * executing shell commands via SC_Events.
-	 *
-	 * @private
-	 */
-    public cached_parsing_processes: {
-		[key: string]: ShellCommandParsingProcess | undefined,
-	} = {};
 
 	public static readonly SHELL_COMMANDS_URI_ACTION = "shell-commands";
 
@@ -355,6 +341,7 @@ export default class SC_Plugin extends Plugin {
     
     private registerReExecuteCommand(reExecuteCommandConfiguration: typeof this.settings.command_palette.re_execute_last_shell_command) {
         const reExecutePrefix: string = reExecuteCommandConfiguration.prefix;
+        let commandPalettePreviewRevision = 0;
         const reExecuteCommand: Command = {
             id: "re-execute-from-command-palette",
             name: reExecutePrefix + (this.lastTShellCommandExecutedFromCommandPalette?.getAliasOrShellCommand() ?? "Last shell command"),
@@ -371,29 +358,28 @@ export default class SC_Plugin extends Plugin {
                     // Do not execute the command yet, but parse variables for preview, if enabled in the settings.
                     debugLog("Getting re-execute preview for shell command #" + lastTShellCommand.getId());
                     const pluginPrefix = this.getPluginName() + ": "; // Normally Obsidian prefixes all commands with the plugin name automatically, but now that we are actually _editing_ a command in the palette (not creating a new one), Obsidian won't do the prefixing for us.
-                    if (this.settings.preview_variables_in_command_palette) {
+                    const previewRevision = ++commandPalettePreviewRevision;
+                    const rawPreviewContent = lastTShellCommand.getAliasOrShellCommand();
+                    const commandPalettePreviewContent = lastTShellCommand.getCommandPalettePreviewContent();
+                    reExecuteCommand.name = pluginPrefix + reExecuteCommandConfiguration.prefix + commandPalettePreviewContent;
+                    if (this.settings.preview_variables_in_command_palette && commandPalettePreviewContent === rawPreviewContent) {
                         
-                        // Preparse variables.
                         const parsingProcess = lastTShellCommand.createParsingProcess(null); // No SC_Event is available when executing shell commands via the command palette / hotkeys.
                         parsingProcess.process().then((parsingSucceeded: boolean) => {
+                            if (previewRevision !== commandPalettePreviewRevision) {
+                                debugLog("Ignoring obsolete re-execute command palette preview for shell command #" + lastTShellCommand.getId());
+                                return;
+                            }
+
                             if (parsingSucceeded) {
                                 // Parsing succeeded.
-                                
+
                                 // Rename Obsidian command.
                                 reExecuteCommand.name = pluginPrefix + reExecuteCommandConfiguration.prefix + (TShellCommand.getAliasOrShellCommandContentFromParsingResult(parsingProcess));
-                                
-                                // Store the preparsed variables so that they will be used if this shell command gets executed.
-                                this.cached_parsing_processes[lastTShellCommand.getId()] = parsingProcess;
                             } else {
-                                // Parsing failed, so use unparsed lastTShellCommand.getAliasOrShellCommand().
-                                reExecuteCommand.name = pluginPrefix + reExecuteCommandConfiguration.prefix + lastTShellCommand.getAliasOrShellCommand();
-                                this.cached_parsing_processes[lastTShellCommand.getId()] = undefined;
+                                debugLog("Re-execute command palette preview parsing failed for shell command #" + lastTShellCommand.getId() + ". Keeping synchronous preview name.");
                             }
                         });
-                    } else {
-                        // Parsing is disabled, so use unparsed lastTShellCommand.getAliasOrShellCommand().
-                        reExecuteCommand.name = pluginPrefix + reExecuteCommandConfiguration.prefix + lastTShellCommand.getAliasOrShellCommand();
-                        this.cached_parsing_processes[lastTShellCommand.getId()] = undefined;
                     }
                     
                     // Can show in command palette.
@@ -402,12 +388,7 @@ export default class SC_Plugin extends Plugin {
                     // Execute a shell command.
                     if (lastTShellCommand) {
                         // A previously executed shell command is found.
-                        lastTShellCommand.executeOrShowErrors(
-                            this.cached_parsing_processes[lastTShellCommand.getId()], // Can be undefined, if no preparsing was done. executeOrShowErrors() will handle creating the parsing process then.
-                        ).then(() => {
-                            // Remove obsolete preparsed variables from all shell commands, also from ones that were not executed.
-                            this.cached_parsing_processes = {};
-                        });
+                        void lastTShellCommand.executeOrShowErrors(undefined);
                     } else {
                         // No previously executed shell command exists. (We only get here when a hotkey is pressed, as the re-execute command is not visible in Command palette, if no shell command is yet executed).
                         this.newError("No shell command has been executed yet.");

@@ -21,8 +21,16 @@ Features that are currently in development and not released yet. This does not i
 ### To be Changed
  - [Updated copyright year to 2025 (#199)](https://github.com/Taitava/obsidian-shellcommands/issues/199).
 
+## [0.23.1] - 2026-08-
+
 ### Fixed
- - Settings tabs blank on Obsidian 1.13+: activate tab panes via the in-memory container map / container-scoped lookup instead of `document.getElementById()`, so `.SC-tab-active` is applied to the visible pane and the Shell commands list / New shell command button render again.
+
+- Settings tabs was blank on Obsidian 1.13+: Replaced custom tabs with Obsidian default tabs. The settings UI is functionally equivalent but looks quite different now. It is more consistent with the "Obsidian-Style".
+
+### Chores
+
+- Updated build environment / dependencies.
+- Refactored to minimum Obsidian version 1.13. I.e. this version of the plugin will not work with older versions of Obsidian.
 
 ## [0.23.0] - 2024-11-09
 
@@ -31,7 +39,7 @@ Features that are currently in development and not released yet. This does not i
      - A non-working draft version of the event was accidentally released already in SC `0.20.0`, but now it's finally working.
  - [New variables: `{{yaml_values}}` and `{{event_yaml_values}}` (#424)](https://github.com/Taitava/obsidian-shellcommands/issues/424).
      - Single value retrieving variables `{{yaml_value}}` and `{{event_yaml_value}}` existed already, but these new variables can retrieve lists of values.
-  
+
 ### Changed
  - [Notification balloon: Use custom monospace font set in Obsidian's Appearance settings (#431)](https://github.com/Taitava/obsidian-shellcommands/issues/431).
  - [Settings: Add more icons by getting them automatically from Obsidian (#425)](https://github.com/Taitava/obsidian-shellcommands/issues/425).
@@ -88,7 +96,7 @@ Features that are currently in development and not released yet. This does not i
 - [Settings: Make each shell command show their shell's name (#353)](https://github.com/Taitava/obsidian-shellcommands/issues/353).
 - [Command palette: Re-execute last shell command (#354)](https://github.com/Taitava/obsidian-shellcommands/issues/354).
 - [Incomplete code of an event named "Cared moved in editor" was accidentally released. The event does not work yet. (#345)](https://github.com/Taitava/obsidian-shellcommands/issues/345).
-  
+
 ### Changed
 - [Custom variables pane: Show linebreaks in variable values correctly (#355)](https://github.com/Taitava/obsidian-shellcommands/issues/355).
 - [Small improvements for shell command extra settings modal (#356)](https://github.com/Taitava/obsidian-shellcommands/issues/356).
@@ -254,7 +262,7 @@ Features that are currently in development and not released yet. This does not i
 ## [0.12.1] - 2022-05-16
 
 ### Fixed:
- - [Bug: Autocomplete menu caused some unintended console logging (#223)](https://github.com/Taitava/obsidian-shellcommands/issues/223). 
+ - [Bug: Autocomplete menu caused some unintended console logging (#223)](https://github.com/Taitava/obsidian-shellcommands/issues/223).
  - [Bug: {{event_yaml_value}} gives wrong error message when the wanted property is not found (#220)](https://github.com/Taitava/obsidian-shellcommands/issues/220).
 
 ## [0.12.0] - 2022-05-07
@@ -420,7 +428,7 @@ Features that are currently in development and not released yet. This does not i
 ### Added
 - [Confirmation before executing a shell command (#35)](https://github.com/Taitava/obsidian-shellcommands/issues/35)
 - [Settings: Execute now icon button for each command (#30)](https://github.com/Taitava/obsidian-shellcommands/issues/30)
-- [Ignore errors by code (#36)](https://github.com/Taitava/obsidian-shellcommands/issues/36): You can choose not to display error messages for certain exit codes. 
+- [Ignore errors by code (#36)](https://github.com/Taitava/obsidian-shellcommands/issues/36): You can choose not to display error messages for certain exit codes.
 
 ### Changed
 - [Working directory: support a relative path (#28)](https://github.com/Taitava/obsidian-shellcommands/issues/28)
