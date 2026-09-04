@@ -478,8 +478,8 @@ export class ShellCommandSettingsModal extends SC_Modal {
                     "stderr-first": "Stderr first, then stdout.",
                 })
                 .setValue(this.t_shell_command.getOutputChannelOrder())
-                .onChange(async (value: OutputChannelOrder) => {
-                    this.t_shell_command.getConfiguration().output_channel_order = value;
+                .onChange(async (value: string) => {
+                    this.t_shell_command.getConfiguration().output_channel_order = value as OutputChannelOrder;
                     await this.plugin.saveSettings();
                 })
             )
@@ -599,10 +599,10 @@ export class ShellCommandSettingsModal extends SC_Modal {
             .addDropdown(dropdown => dropdown
                 .addOptions(CommandPaletteOptions)
                 .setValue(this.t_shell_command.getConfiguration().command_palette_availability)
-                .onChange(async (value: keyof ICommandPaletteOptions) => {
+                .onChange(async (value: string) => {
 
                     // Store value
-                    this.t_shell_command.getConfiguration().command_palette_availability = value;
+                    this.t_shell_command.getConfiguration().command_palette_availability = value as keyof ICommandPaletteOptions;
 
                     // Update command palette
                     if (this.t_shell_command.canAddToCommandPalette()) {
@@ -847,8 +847,8 @@ export class ShellCommandSettingsModal extends SC_Modal {
             .addDropdown(dropdown => dropdown
                 .addOptions(output_channel_options)
                 .setValue(this.t_shell_command.getOutputHandlers()[output_stream_name].handler)
-                .onChange(async (value: OutputHandlerCode) => {
-                    this.t_shell_command.getConfiguration().output_handlers[output_stream_name].handler = value;
+                .onChange(async (value: string) => {
+                    this.t_shell_command.getConfiguration().output_handlers[output_stream_name].handler = value as OutputHandlerCode;
                     await this.plugin.saveSettings();
                 })
             )

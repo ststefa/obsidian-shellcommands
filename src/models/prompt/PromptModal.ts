@@ -190,10 +190,8 @@ export class PromptModal extends SC_Modal {
                                 
                                 // Is the value a password?
                                 let useValue: string;
-                                const isPassword: boolean = (variable instanceof CustomVariable)
-                                    ? this.prompt.getFieldByVariable(variable)?.configuration.type === "password" ?? false
-                                    : false
-                                ;
+                                const isPassword: boolean = variable instanceof CustomVariable
+                                    && this.prompt.getFieldByVariable(variable)?.configuration.type === "password";
                                 if (isPassword) {
                                     // Cloak a password.
                                     useValue = cloakPassword(originalValue);

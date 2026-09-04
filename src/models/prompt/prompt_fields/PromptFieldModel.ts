@@ -158,9 +158,9 @@ export class PromptFieldModel extends Model {
                 .addDropdown(dropdownComponent => dropdownComponent
                     .addOptions(PromptFieldTypes)
                     .setValue(prompt_field.configuration.type)
-                    .onChange(async (newType: keyof typeof PromptFieldTypes) => {
+                    .onChange(async (newType: string) => {
                         // Change the PromptField's type.
-                        prompt_field.configuration.type = newType;
+                        prompt_field.configuration.type = newType as keyof typeof PromptFieldTypes;
                         
                         // Declare possibly new configuration properties.
                         prompt_field.ensureAllConfigurationPropertiesExist();
@@ -348,7 +348,7 @@ export class PromptFieldModel extends Model {
                 break;
             
             case "single-choice": {
-                const choices: string = promptFieldConfiguration.choices.map((choice: [string, string]): string => {
+                const choices: string = promptFieldConfiguration.choices.map((choice: string | [string, string]): string => {
                     if (Array.isArray(choice)) {
                         // Different value and label.
                         return choice[0] + "|" + choice[1];

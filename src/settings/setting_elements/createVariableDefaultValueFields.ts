@@ -192,13 +192,13 @@ export function createVariableDefaultValueField(
                     ? "inherit"     // If configuring a TShellCommand, then default config type should be "inherit".
                     : "show-errors" // If configuring a Variable, then default config type should be "show-errors", because "inherit" is not available.
             )
-            .onChange(async (newType: VariableDefaultValueTypeWithInherit) => {
+            .onChange(async (newType: string) => {
                 if (!defaultValueConfiguration) {
                     defaultValueConfiguration = createDefaultValueConfiguration();
                 }
 
                 // Set the new type
-                defaultValueConfiguration.type = newType;
+                defaultValueConfiguration.type = newType as VariableDefaultValueTypeWithInherit;
                 if (targetType === "tShellCommand") {
                     // Shell commands:
                     if ("inherit" === newType && defaultValueConfiguration.value === "") {

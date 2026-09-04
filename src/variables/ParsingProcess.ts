@@ -97,7 +97,7 @@ export class ParsingProcess<ParsingMap extends {[key: string]: string}> {
             if (this.is_first_call) {
                 // Use original content.
                 parse_content = this.original_contents[content_key];
-                debugLog("Starting to parse '" + content_key + "': " + parse_content);
+                debugLog("Starting to parse '" + String(content_key) + "': " + parse_content);
             } else {
                 // Continue parsing content from previous parsing result. This time parse variables that were not parse back then.
                 // FIXME: Problem: variable values that came from an earlier phase are exposed to repetitive parsing. Find a way to limit the parsing to only original parts of the shell command.
@@ -105,7 +105,7 @@ export class ParsingProcess<ParsingMap extends {[key: string]: string}> {
                 const previousParsingResult: ParsingResult | undefined = this.parsing_results[content_key];
                 if (undefined === previousParsingResult) {
                     // This is just a type guard. this.getContentKeys() should only return keys that exist, so the checks should never throw errors in practise.
-                    throw new Error("Parsing results do not contain key: " + content_key);
+                    throw new Error("Parsing results do not contain key: " + String(content_key));
                 }
 
                 // Check that the previous parsing did not fail.
@@ -116,7 +116,7 @@ export class ParsingProcess<ParsingMap extends {[key: string]: string}> {
 
                 // Previous parsing was ok.
                 parse_content = previousParsingResult.parsed_content;
-                debugLog("Continuing parsing '" + content_key + "': " + parse_content);
+                debugLog("Continuing parsing '" + String(content_key) + "': " + parse_content);
             }
 
             // Parse the variables

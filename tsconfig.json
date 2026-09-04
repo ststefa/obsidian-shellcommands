@@ -1,13 +1,19 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "inlineSourceMap": true,
     "inlineSources": true,
     "module": "ESNext",
     "target": "ES2021",
     "allowJs": true,
     "noImplicitAny": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "rootDir": "src",
+    "types": [
+      "node"
+    ],
+    "skipLibCheck": true,
+    "strictPropertyInitialization": false,
+    "useUnknownInCatchVariables": false,
     "importHelpers": true,
     "noImplicitReturns": true,
     "strictNullChecks": true,

@@ -74,7 +74,7 @@ export function createPATHAugmentationFields(plugin: SC_Plugin, container_elemen
     // Create a field for each operating system.
     const sub_container_element = container_element.createDiv();
     sub_container_element.addClass("SC-setting-group");
-    Object.getOwnPropertyNames(PlatformNames).forEach((platform_id: PlatformId) => { // Use .forEach() and callbacks instead of a simple for loop, because 'platform_id' needs to retain the same value later in the .onChange() callback. Otherwise, `platform_id` would show up as "win32" in all .onChange() calls.
+    (Object.getOwnPropertyNames(PlatformNames) as PlatformId[]).forEach((platform_id: PlatformId) => { // Use .forEach() and callbacks instead of a simple for loop, because 'platform_id' needs to retain the same value later in the .onChange() callback. Otherwise, `platform_id` would show up as "win32" in all .onChange() calls.
         const platform_name = PlatformNames[platform_id];
 
         new Setting(sub_container_element).setName(platform_name + " " + getPATHEnvironmentVariableName(platform_id) + " additions")

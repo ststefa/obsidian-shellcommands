@@ -171,8 +171,9 @@ export class CustomShellSettingsModal extends SC_Modal {
                     "none": "No escaping (not recommended)",
                 })
                 .setValue(this.getCustomShellConfiguration().escaper ?? "none")
-                .onChange(async (newEscaper: "UnixShell" | "PowerShell" | "none") => {
-                    this.getCustomShellConfiguration().escaper = newEscaper === "none" ? null : newEscaper;
+                .onChange(async (newEscaper: string) => {
+                    const escaper = newEscaper as "UnixShell" | "PowerShell" | "none";
+                    this.getCustomShellConfiguration().escaper = escaper === "none" ? null : escaper;
                     await this.plugin.saveSettings();
                 })
             )
@@ -312,8 +313,9 @@ export class CustomShellSettingsModal extends SC_Modal {
             .addDropdown(dropdownComponent => dropdownComponent
                 .addOptions(Object.fromEntries(PlatformNamesMap))
                 .setValue(this.getCustomShellConfiguration().host_platform)
-                .onChange(async (newHostPlatform: PlatformId) => {
-                    const changeResult: true | string = this.customShellInstance.changeHostPlatformIfCan(newHostPlatform);
+                .onChange(async (newHostPlatform: string) => {
+                    const hostPlatform = newHostPlatform as PlatformId;
+                    const changeResult: true | string = this.customShellInstance.changeHostPlatformIfCan(hostPlatform);
                     if ("string" === typeof changeResult) {
                         // Cannot change the host platform, because the shell has usages.
                         this.plugin.newError("Cannot change the host platform, because the shell is used " + changeResult + ".");
@@ -324,7 +326,7 @@ export class CustomShellSettingsModal extends SC_Modal {
                     }
 
                     // Show or hide any platform specific settings.
-                    updatePlatformSpecificSettingsVisibility(newHostPlatform);
+                    updatePlatformSpecificSettingsVisibility(hostPlatform);
                 }),
             )
             .addExtraButton(button => button

@@ -47,7 +47,7 @@ export class Variable_EventFileContent extends EventVariable {
         this.requireCorrectEvent(sc_event);
 
         // Retrieve file content.
-        return await app.vault.read(sc_event.getFile());
+        return await this.app.vault.read(sc_event.getFile());
     }
 
 }

@@ -208,7 +208,8 @@ export class Prompt extends Instance {
         const usages: UsageContainer = new UsageContainer(this.getTitle());
         
         for (const tShellCommand of this.plugin.getTShellCommandsAsMap().values()) {
-            const promptIdsUsedByShellCommand: (string | undefined)[] = Object.values(tShellCommand.getConfiguration().preactions).map((preactionConfiguration: Preaction_Prompt_Configuration) => preactionConfiguration?.prompt_id);
+            const promptIdsUsedByShellCommand: (string | undefined)[] = Object.values(tShellCommand.getConfiguration().preactions)
+                .map((preactionConfiguration) => (preactionConfiguration as Preaction_Prompt_Configuration)?.prompt_id);
             if (promptIdsUsedByShellCommand.contains(this.getID())) {
                 usages.addUsage(
                     {

@@ -775,6 +775,9 @@ export default class SC_Plugin extends Plugin {
 
 	public createCustomVariableView(): void {
 		const leaf = this.app.workspace.getRightLeaf(false);
+        if (null === leaf) {
+            return;
+        }
 		leaf.setViewState({
 			type: CustomVariableView.ViewType,
 			active: true,
@@ -827,5 +830,4 @@ export default class SC_Plugin extends Plugin {
         };
     }
 }
-
 

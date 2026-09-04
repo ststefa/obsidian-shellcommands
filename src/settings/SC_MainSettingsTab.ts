@@ -703,16 +703,17 @@ export class SC_MainSettingsTab extends PluginSettingTab {
                     if (appearanceTabOpened) {
                         // Try to look for the monospace font setting. This is a bit quirky and might not work if Obsidian changes the setting's name (or if user has other display language than English).
                         let settingFound = false;
-                        document.querySelectorAll("div.setting-item-name").forEach((divSettingItemName: HTMLElement) => {
+                        document.querySelectorAll("div.setting-item-name").forEach((divSettingItemName: Element) => {
+                            const settingNameElement = divSettingItemName as HTMLElement;
                             if (divSettingItemName.innerHTML.match(/^\s*Monospace font\s*$/i) && !settingFound) { // !settingFound: Don't search anymore if an element was already scrolled into view.
                                 // Found the monospace font setting.
                                 // Ensure it's in the view and make it bold.
-                                divSettingItemName.scrollIntoView({
+                                settingNameElement.scrollIntoView({
                                     behavior: "smooth",
                                     block: "center",
                                     inline: "nearest", // Horizontal alignment. Doesn't matter, there should be no horizontal scrolling.
                                 });
-                                divSettingItemName.style.fontWeight = "bold"; // Highlight the setting.
+                                settingNameElement.style.fontWeight = "bold"; // Highlight the setting.
                                 settingFound = true;
                             }
                         });

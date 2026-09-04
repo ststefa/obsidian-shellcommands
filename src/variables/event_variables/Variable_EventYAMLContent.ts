@@ -64,7 +64,7 @@ export class Variable_EventYAMLContent extends EventVariable {
                 return;
             }
 
-            getFileYAML(this.app, sc_event.getFile(), castedArguments.withDashes === "with-dashes").then((yamlContent: string) => {
+            getFileYAML(this.app, sc_event.getFile(), castedArguments.withDashes === "with-dashes").then((yamlContent: string | null) => {
                 if (null === yamlContent) {
                     // No YAML frontmatter.
                     this.reject("The event related file does not contain a YAML frontmatter.", reject);

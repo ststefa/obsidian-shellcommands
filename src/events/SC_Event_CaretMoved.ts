@@ -79,8 +79,8 @@ export class SC_Event_CaretMoved extends SC_CodeMirrorEvent {
                     column: "Column changes only",
                 })
                 .setValue(this.getConfiguration(tShellCommand).lineOrColumn)
-                .onChange(async (newMode: Configuration["lineOrColumn"]) => {
-                    this.getConfiguration(tShellCommand).lineOrColumn = newMode;
+                .onChange(async (newMode: string) => {
+                    this.getConfiguration(tShellCommand).lineOrColumn = newMode as Configuration["lineOrColumn"];
                     await this.plugin.saveSettings();
                 })
             )

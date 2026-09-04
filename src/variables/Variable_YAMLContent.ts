@@ -50,7 +50,7 @@ export class Variable_YAMLContent extends FileVariable {
                 return;
             }
 
-            getFileYAML(this.app, file, "with-dashes" === castedArguments.withDashes).then((yamlContent: string) => {
+            getFileYAML(this.app, file, "with-dashes" === castedArguments.withDashes).then((yamlContent: string | null) => {
                 if (null === yamlContent) {
                     // No YAML frontmatter.
                     this.reject("The current file does not contain a YAML frontmatter.", reject);

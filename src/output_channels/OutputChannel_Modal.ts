@@ -122,7 +122,7 @@ class OutputModal extends SC_Modal {
      * @param outputs
      */
     public setOutputContents(outputs: OutputStreams) {
-        Object.getOwnPropertyNames(outputs).forEach((outputStreamName: OutputStream) => {
+        (Object.getOwnPropertyNames(outputs) as OutputStream[]).forEach((outputStreamName: OutputStream) => {
             const outputField: Setting = this.outputFields[outputStreamName];
 
             // Set field value
@@ -279,7 +279,7 @@ class OutputModal extends SC_Modal {
             .setClass("SC-output-channel-modal-redirection-buttons-container") // I think this calls actually HTMLDivElement.addClass(), so it should not override the previous .setClass().
         ;
         const outputChannels = getOutputChannelClasses();
-        Object.getOwnPropertyNames(outputChannels).forEach((output_channel_name: OutputHandlerCode) => {
+        (Object.getOwnPropertyNames(outputChannels) as OutputHandlerCode[]).forEach((output_channel_name: OutputHandlerCode) => {
             const outputChannelClass = outputChannels[output_channel_name];
 
             // Ensure this channel is not excluded by checking that is has a hotkey defined.

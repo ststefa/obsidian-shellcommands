@@ -36,6 +36,6 @@ export class Variable_Date extends Variable {
         shell: Shell,
         castedArguments: {format: string},
     ): Promise<string> {
-        return moment().format(castedArguments.format);
+        return (moment as unknown as () => {format(format: string): string})().format(castedArguments.format);
     }
 }

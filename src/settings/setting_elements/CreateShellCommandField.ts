@@ -259,11 +259,11 @@ export function createShellCommandField(
                         hotkeys_settings_tab.updateHotkeyVisibility();
                     } else {
                         debugLog("Hotkeys: Cannot do filtering due to API changes. Search element has changed.");
-                        this.plugin.newNotification(searchErrorMessage);
+                        plugin.newNotification(searchErrorMessage);
                     }
                 } else {
                     debugLog("Hotkeys: Cannot do filtering due to API changes. 'Hotkeys' settings tab has changed.");
-                    this.plugin.newNotification(searchErrorMessage);
+                    plugin.newNotification(searchErrorMessage);
                 }
             }),
         );

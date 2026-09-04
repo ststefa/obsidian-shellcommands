@@ -25,6 +25,6 @@ export class Variable_FileContent extends FileVariable {
 
     protected async generateValue(): Promise<string> {
         // Retrieve file content.
-        return await app.vault.read(this.getFileOrThrow());
+        return await this.app.vault.read(this.getFileOrThrow());
     }
 }
