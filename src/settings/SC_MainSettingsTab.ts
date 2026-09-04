@@ -25,6 +25,8 @@ import {
     sanitizeHTMLToDom,
     SearchComponent,
     Setting,
+    SettingDefinitionItem,
+    SettingPage,
 } from "obsidian";
 import SC_Plugin from "../main";
 import {
@@ -36,7 +38,6 @@ import {
 } from "../Common";
 import {createShellSelectionFields} from "./setting_elements/CreateShellSelectionFields";
 import {createShellCommandField} from "./setting_elements/CreateShellCommandField";
-import {createTabs, TabStructure} from "./setting_elements/Tabs";
 import {debugLog} from "../Debug";
 import {
     Documentation,
@@ -74,8 +75,6 @@ import {AppWithSettings} from "../ObsidianPrivateApi";
 export class SC_MainSettingsTab extends PluginSettingTab {
     private readonly plugin: SC_Plugin;
 
-    private tab_structure: TabStructure;
-
     public setting_groups: SettingFieldGroupContainer = {};
 
     constructor(app: App, plugin: SC_Plugin) {
@@ -83,68 +82,48 @@ export class SC_MainSettingsTab extends PluginSettingTab {
         this.plugin = plugin;
     }
 
-    public display(): void {
-        const {containerEl} = this;
-
-        containerEl.empty();
-
-        this.tab_structure = createTabs(
-            containerEl,
+    public getSettingDefinitions(): SettingDefinitionItem[] {
+        return [
+            this.createSettingsPageDefinition("Shell commands", (containerElement) => this.tabShellCommands(containerElement)),
+            this.createSettingsPageDefinition("Environments", (containerElement) => this.tabEnvironments(containerElement)),
+            this.createSettingsPageDefinition("Preactions", (containerElement) => this.tabPreactions(containerElement)),
+            this.createSettingsPageDefinition("Output", (containerElement) => this.tabOutput(containerElement)),
+            this.createSettingsPageDefinition("Events", (containerElement) => this.tabEvents(containerElement)),
+            this.createSettingsPageDefinition("Variables", (containerElement) => this.tabVariables(containerElement)),
             {
-                "main-shell-commands": {
-                    title: "Shell commands",
-                    icon: "run-command",
-                    content_generator: (container_element: HTMLElement) => this.tabShellCommands(container_element),
-                },
-                "main-environments": {
-                    title: "Environments",
-                    icon: "stacked-levels",
-                    content_generator: (container_element: HTMLElement) => this.tabEnvironments(container_element),
-                },
-                "main-preactions": {
-                    title: "Preactions",
-                    icon: "note-glyph",
-                    content_generator: (container_element: HTMLElement) => this.tabPreactions(container_element),
-                },
-                "main-output": {
-                    title: "Output",
-                    icon: "lines-of-text",
-                    content_generator: (container_element: HTMLElement) => this.tabOutput(container_element),
-                },
-                "main-events": {
-                    title: "Events",
-                    icon: "dice",
-                    content_generator: (container_element: HTMLElement) => this.tabEvents(container_element),
-                },
-                "main-variables": {
-                    title: "Variables",
-                    icon: "code-glyph",
-                    content_generator: (container_element: HTMLElement) => this.tabVariables(container_element),
+                name: "Plugin information",
+                searchable: false,
+                render: (setting: Setting) => {
+                    setting.settingEl.empty();
+                    this.renderPluginInformation(setting.settingEl);
                 },
             },
-            this.last_position.tab_name,
-        );
+        ];
+    }
 
-        // Documentation link & GitHub links
-        containerEl.createEl("p").insertAdjacentHTML("beforeend",
+    private createSettingsPageDefinition(
+        name: string,
+        renderContent: (containerElement: HTMLElement) => void | Promise<void>,
+    ): SettingDefinitionItem {
+        return {
+            type: "page",
+            name,
+            page: () => new SC_SettingsPage(name, renderContent),
+        };
+    }
+
+    private renderPluginInformation(containerElement: HTMLElement): void {
+        containerElement.createEl("p").insertAdjacentHTML("beforeend",
             "<a href=\"" + Documentation.index + "\">Documentation</a> - " +
             "<a href=\"" + GitHub.repository + "\">SC on GitHub</a> - " +
             "<a href=\"" + GitHub.changelog + "\">SC version: " + this.plugin.getPluginVersion() + "</a>",
         );
 
-        // Copyright notice
-        const copyright_paragraph = containerEl.createEl("p");
+        const copyright_paragraph = containerElement.createEl("p");
         copyright_paragraph.addClass("SC-small-font");
         copyright_paragraph.insertAdjacentHTML("beforeend", `
             <em>Shell commands</em> plugin Copyright &copy; 2021 - 2025 Jarkko Linnanvirta. This program comes with ABSOLUTELY NO WARRANTY. This is free software, and you are welcome to redistribute it under certain conditions. See more information in the license: <a href="${GitHub.license}">GNU GPL-3.0</a>.
         `);
-
-        // KEEP THIS AFTER CREATING ALL ELEMENTS:
-        // Scroll to the position when the settings modal was last open, but do it after content generating has finished.
-        // In practise, shell command previews may take some time to appear.
-        this.tab_structure.contentGeneratorPromises[this.tab_structure.active_tab_id].then(() => {
-            this.rememberLastPosition(containerEl);
-        });
     }
 
     private tabShellCommands(container_element: HTMLElement): Promise<void> {
@@ -371,8 +350,8 @@ export class SC_MainSettingsTab extends PluginSettingTab {
                 .onChange(async (value: boolean) => {
                     debugLog("Changing show_autocomplete_menu to " + value);
                     this.plugin.settings.show_autocomplete_menu = value;
-                    this.display(); // Re-render the whole settings view to apply the change.
                     await this.plugin.saveSettings();
+                    this.update(); // Re-render setting definitions to apply the change.
                 }),
             )
             .addExtraButton(extra_button => extra_button
@@ -750,37 +729,20 @@ export class SC_MainSettingsTab extends PluginSettingTab {
         ;
     }
 
-    private last_position: {
-        scroll_position: number;
-        tab_name: string;
-    } = {
-        scroll_position: 0,
-        tab_name: "main-shell-commands",
-    };
-    private rememberLastPosition(container_element: HTMLElement) {
-        const last_position = this.last_position;
+}
 
-        // Go to last position now
-        this.tab_structure.buttons[last_position.tab_name].click();
-        // window.setTimeout(() => { // Need to delay the scrolling a bit. Without this, something else would override scrolling and scroll back to 0.
-            container_element.scrollTo({
-                top: this.last_position.scroll_position,
-                behavior: "auto",
-            });
-        // }, 0); // 'timeout' can be 0 ms, no need to wait any longer.
-        // I guess there's no need for setTimeout() anymore, as rememberLastPosition() is now called after waiting for asynchronous tab content generating is finished.
-        // TODO: Remove the commented code after a while.
+class SC_SettingsPage extends SettingPage {
+    public constructor(
+        title: string,
+        private readonly renderContent: (containerElement: HTMLElement) => void | Promise<void>,
+    ) {
+        super();
+        this.title = title;
+    }
 
-        // Listen to changes
-        container_element.addEventListener("scroll", (event) => {
-            this.last_position.scroll_position = container_element.scrollTop;
-        });
-        for (const tab_name in this.tab_structure.buttons) {
-            const button = this.tab_structure.buttons[tab_name];
-            button.onClickEvent((event: MouseEvent) => {
-                last_position.tab_name = tab_name;
-            });
-        }
+    public display(): void {
+        this.containerEl.empty();
+        void this.renderContent(this.containerEl);
     }
 }
 
