@@ -45,6 +45,14 @@ const outputChannelClasses: {
     [key: string]: typeof OutputChannel;
 } = {};
 
+type OutputChannelConstructor = new (
+    plugin: SC_Plugin,
+    tShellCommand: TShellCommand,
+    shellCommandParsingResult: ShellCommandParsingResult,
+    outputHandlingMode: OutputHandlingMode,
+    processTerminator: (() => void) | null,
+) => OutputChannel;
+
 // Register output channels
 registerOutputChannel("notification", OutputChannel_Notification);
 registerOutputChannel("current-file-caret", OutputChannel_CurrentFileCaret);
@@ -253,8 +261,8 @@ export function initializeOutputChannel(
         outputHandlingMode: OutputHandlingMode,
         processTerminator: (() => void) | null,
     ): OutputChannel {
-    // @ts-ignore TODO: Find out how to tell TypeScript that a subclass is being instatiated instead of the abstract base class:
-    return new outputChannelClasses[channelCode](
+    const OutputChannelClass = outputChannelClasses[channelCode] as unknown as OutputChannelConstructor;
+    return new OutputChannelClass(
         plugin,
         tShellCommand,
         shellCommandParsingResult,

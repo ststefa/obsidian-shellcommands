@@ -515,7 +515,7 @@ export class PromptField extends Instance {
         // Type specific checks.
         switch (this.configuration.type) {
             case "single-choice":
-                if (Object.getOwnPropertyNames(this.configuration.choices).length < 2) { // FIXME: The check does not work, it always turns out as valid.
+                if (this.configuration.choices.length < 2) {
                     return `Dropdown field '${this.getTitle()}' must have at least two options.`;
                 }
         }

@@ -521,10 +521,7 @@ export class TShellCommand extends Cacheable {
             // Try to process variables that can be processed before performing preactions.
             await parsing_process.process();
         }
-        const parsingResults = parsing_process.getParsingResults();
-        const shellCommandContentParsingSucceeded = parsingResults.shellCommandContent?.succeeded; // .shellCommandContent should always be present (even if parsing did not succeed), but if it's not, show errors in the else block.
-        const shellCommandWrapperParsingSucceeded = parsingResults.shellCommandWrapper ? parsingResults.shellCommandWrapper.succeeded : true; // If no wrapper is present, pass.
-        if (shellCommandContentParsingSucceeded && shellCommandWrapperParsingSucceeded) { // FIXME: This should not rely on just one (or two) content's parsing result, it should check all of them. Use parsing_process.getErrorMessages().length === 0 to check all parsed content.
+        if (parsing_process.getErrorMessages().length === 0) {
             // The command was parsed correctly.
             const executor_instance = new ShellCommandExecutor( // Named 'executor_instance' because 'executor' is another constant.
                 this.plugin,
