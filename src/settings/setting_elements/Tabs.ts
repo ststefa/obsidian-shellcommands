@@ -122,14 +122,25 @@ export function createTabs(container_element: HTMLElement, tabs: Tabs, activateT
                 throw new Error("Tab button has no 'activateTab' HTML attribute! Murr!");
             }
             const activate_tab_id = activateTabAttribute.value;
-            const tab_content: HTMLElement | null = document.getElementById(activate_tab_id);
+            // Prefer the in-memory container map (and container-scoped DOM lookup) over
+            // document.getElementById(). On Obsidian 1.13+ settings panes, getElementById
+            // often returns null for these tab nodes, so .SC-tab-active never sticks and
+            // CSS keeps .SC-tab-content { display: none } -- empty settings UI except the
+            // footer links that live outside the tab system.
+            const logical_tab_id = activate_tab_id.replace(/^SC-tab-/, "");
+            const tab_content: HTMLElement | null =
+                tab_content_containers[logical_tab_id]
+                ?? (typeof container_element.find === "function"
+                    ? container_element.find("#" + activate_tab_id)
+                    : null)
+                ?? container_element.querySelector("#" + activate_tab_id);
             if (null === tab_content) {
                 throw new Error("No tab content was found with activate_tab_id '"+activate_tab_id+"'! Hmph!");
             }
             tab_content.addClass("SC-tab-active");
 
             // Mark the clicked tab as active in TabStructure (just to report which tab is currently active)
-            tab_structure.active_tab_id = activate_tab_id.replace(/^SC-tab-/, ""); // Remove "SC-tab" prefix.
+            tab_structure.active_tab_id = logical_tab_id;
 
             // Focus an element (if a focusable element is present)
             tab_content.find(".SC-focus-element-on-tab-opening")?.focus(); // ? = If not found, do nothing.
@@ -166,4 +177,3 @@ export function createTabs(container_element: HTMLElement, tabs: Tabs, activateT
     // Return the TabStructure
     return tab_structure;
 }
-

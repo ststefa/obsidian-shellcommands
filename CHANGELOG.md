@@ -21,6 +21,9 @@ Features that are currently in development and not released yet. This does not i
 ### To be Changed
  - [Updated copyright year to 2025 (#199)](https://github.com/Taitava/obsidian-shellcommands/issues/199).
 
+### Fixed
+ - Settings tabs blank on Obsidian 1.13+: activate tab panes via the in-memory container map / container-scoped lookup instead of `document.getElementById()`, so `.SC-tab-active` is applied to the visible pane and the Shell commands list / New shell command button render again.
+
 ## [0.23.0] - 2024-11-09
 
 ### Added
