@@ -8,7 +8,7 @@ Upstream had a long-standing bug that broke the settings UI, making the plugin u
 
 It is the only plugin that I know of which has such sophisticated shell execution features. Thanks go to the author for building such a comprehensive codebase. It really strikes the right chord for me.
 
-While I fixed the original bug (see <https://github.com/Taitava/obsidian-shellcommands/pull/482>) it surfaced that the projects entire build infrastructure was quite outdated, too. Having s solid background in coding (not so much in js), I used ChatGPT to update that.
+While I fixed the original bug (see <https://github.com/Taitava/obsidian-shellcommands/pull/482>) it surfaced that the projects entire build infrastructure was quite outdated, too. Having a solid background in coding (but not so much in js/ts), I used ChatGPT to update that.
 
 While I was at it, I burned some more LLM tokens to modernize things:
 
@@ -25,7 +25,9 @@ This fork is intended to be a long-lived downstream fork, mostly for my personal
 
 Upstream is welcome to merge it in, but given the massive amount of changes I doubt that this will ever happen.
 
-I’ll keep maintaining my fork for as long as I use Obsidian (which I cannot see will ever change) and my changes are not merged (or otherwise resolved) into upstream. I expect this to remain the case for quite some time yet.
+I’ll keep maintaining my fork for as long as I use Obsidian and the plugin (which I cannot see will ever change) and my changes are not merged (or otherwise resolved) into upstream. I expect this to remain the case for quite some time yet.
+
+Thanks to LLMs, this fork is worth not much more than half a day of my time and some tokens. All credits for this plugin should go to the original author. If you want to donate for his work because you find it useful, head over to <https://publish.obsidian.md/shellcommands/Donate>.
 
 ## Local changes
 
