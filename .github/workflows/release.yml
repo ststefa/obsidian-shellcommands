@@ -63,13 +63,51 @@ jobs:
       - name: Verify release assets
         run: test -s main.js && test -s manifest.json && test -s styles.css
 
+      - name: Generate release notes
+        env:
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          VERSION="${TAG#v}"
+          export VERSION
+          node <<'NODE'
+          const fs = require('fs');
+
+          const tag = process.env.TAG;
+          const version = process.env.VERSION;
+          const repository = process.env.GITHUB_REPOSITORY;
+          const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
+          const lines = changelog.split(/\r?\n/);
+          const heading = `## [${version}]`;
+          const start = lines.findIndex(line => line.startsWith(heading));
+          const end = start < 0
+            ? -1
+            : lines.findIndex((line, index) => index > start && line.startsWith('## ['));
+          const releaseSection = start < 0
+            ? ''
+            : lines.slice(start + 1, end < 0 ? lines.length : end).join('\n').trim();
+          const changelogUrl = `https://github.com/${repository}/blob/${tag}/CHANGELOG.md`;
+
+          const notes = [
+            `# Release ${tag}`,
+            '',
+            releaseSection || `No dedicated changelog section found for ${version}.`,
+            '',
+            '---',
+            '',
+            `Full changelog: ${changelogUrl}`,
+          ].join('\n');
+
+          fs.writeFileSync('release-notes.md', notes + '\n');
+          NODE
+
       - name: Publish release assets
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file release-notes.md
             gh release upload "$TAG" main.js manifest.json styles.css --clobber
           else
-            gh release create "$TAG" main.js manifest.json styles.css --title "$TAG" --notes "Release $TAG"
+            gh release create "$TAG" main.js manifest.json styles.css --title "$TAG" --notes-file release-notes.md
           fi
