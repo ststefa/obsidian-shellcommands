@@ -111,6 +111,8 @@ export class ShellCommandSettingsModal extends SC_Modal {
 
     public onOpen() {
         super.onOpen();
+        this.containerEl.addClass("SC-shell-command-settings-modal-container");
+        this.modalEl.addClass("SC-shell-command-settings-modal");
 
         // Modal title.
         this.setTitle(this.t_shell_command.getAliasOrShellCommand());
@@ -178,12 +180,13 @@ export class ShellCommandSettingsModal extends SC_Modal {
         createExecuteNowButton(this.plugin, bottomSetting, this.t_shell_command);
     }
 
+    public onClose(): void {
+        this.containerEl.removeClass("SC-shell-command-settings-modal-container");
+    }
+
     private async tabGeneral(container_element: HTMLElement): Promise<void> {
         // Alias field
         const alias_container = container_element.createDiv({attr: {class: "SC-setting-group"}});
-        new Setting(alias_container)
-            .setName("Alias")
-        ;
         const on_alias_change = async (value: string) => {
             // Change the actual alias value
             this.t_shell_command.getConfiguration().alias = value;
@@ -201,11 +204,12 @@ export class ShellCommandSettingsModal extends SC_Modal {
             await this.plugin.saveSettings();
         };
         const alias_setting = new Setting(alias_container)
+            .setName("Alias")
+            .setDesc("If not empty, the alias will be displayed in the command palette instead of the actual command. An alias is never executed as a command. Variables are supported for previewing command values.")
             .addText(text => text
                 .setValue(this.t_shell_command.getAlias())
                 .onChange(on_alias_change)
             )
-            .setClass("SC-no-description")
         ;
         const alias_input_element: HTMLInputElement = alias_setting.controlEl.find("input") as HTMLInputElement;
         alias_input_element.addClass("SC-focus-element-on-tab-opening"); // Focus without a need to click the field.
@@ -213,9 +217,6 @@ export class ShellCommandSettingsModal extends SC_Modal {
             // Show autocomplete menu (= a list of available variables).
             createAutocomplete(this.plugin, alias_input_element, on_alias_change);
         }
-
-        alias_container.createEl("p", {text: "If not empty, the alias will be displayed in the command palette instead of the actual command. An alias is never executed as a command."});
-        alias_container.createEl("p", {text: "You can also use the same {{}} style variables in aliases that are used in shell commands. When variables are used in aliases, they do not affect the command execution in any way, but it's a nice way to reveal what values your command will use, even when an alias hides most of the other technical details. Starting a variable with {{! will prevent escaping special characters in command palette."});
 
         // Icon field
         const current_icon = this.t_shell_command.getConfiguration().icon;
@@ -540,9 +541,19 @@ export class ShellCommandSettingsModal extends SC_Modal {
     }
 
     private async tabEnvironments(container_element: HTMLElement): Promise<void> {
+        const platformSpecificSettingGroups: Map<PlatformId, SettingFieldGroup> = new Map;
+        let defaultSettingGroup: SettingFieldGroup;
+
+        createShellSelectionFields(this.plugin, container_element, this.t_shell_command.getShells(), false, (platformId: PlatformId) => {
+            // When a shell is changed, update previews of default and platform specific shell command fields.
+            const shellForDefaultCommand = this.t_shell_command.getShellForDefaultCommand();
+            defaultSettingGroup.refreshPreview(shellForDefaultCommand);
+            this.settingGroupInMainTab.refreshPreview(shellForDefaultCommand);
+            platformSpecificSettingGroups.get(platformId)?.refreshPreview(this.t_shell_command.getShellForPlatform(platformId));
+        });
         
         // Default shell command for platforms that don't have a specific command.
-        const defaultSettingGroup: SettingFieldGroup = this.newDefaultShellCommandContentSetting(container_element, () => {
+        defaultSettingGroup = this.newDefaultShellCommandContentSetting(container_element, () => {
             // When the default shell command content changes, update placeholders of platform specific shell command fields.
             for (const settingGroup of platformSpecificSettingGroups.values()) {
                 const textareaComponent: TextAreaComponent | undefined = settingGroup.shell_command_setting.components[0] as TextAreaComponent | undefined;
@@ -562,7 +573,6 @@ export class ShellCommandSettingsModal extends SC_Modal {
         
         // Platform specific shell commands
         let platform_id: PlatformId;
-        const platformSpecificSettingGroups: Map<PlatformId, SettingFieldGroup> = new Map;
         for (platform_id in PlatformNames) {
             platformSpecificSettingGroups.set(
                 platform_id,
@@ -580,15 +590,6 @@ export class ShellCommandSettingsModal extends SC_Modal {
                 ),
             );
         }
-
-        // Platform specific shell selection
-        createShellSelectionFields(this.plugin, container_element, this.t_shell_command.getShells(), false, (platformId: PlatformId) => {
-            // When a shell is changed, update previews of default and platform specific shell command fields.
-            const shellForDefaultCommand = this.t_shell_command.getShellForDefaultCommand();
-            defaultSettingGroup.refreshPreview(shellForDefaultCommand);
-            this.settingGroupInMainTab.refreshPreview(shellForDefaultCommand);
-            platformSpecificSettingGroups.get(platformId)?.refreshPreview(this.t_shell_command.getShellForPlatform(platformId));
-        });
     }
 
     private async tabEvents(container_element: HTMLElement): Promise<void> {

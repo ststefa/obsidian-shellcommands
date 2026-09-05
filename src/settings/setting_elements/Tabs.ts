@@ -89,12 +89,13 @@ export function createTabs(container_element: HTMLElement, tabs: Tabs, activateT
             }
             const tab_contents = container_element.findAll("div.SC-tab-content"); // Do not get all tab contents that exist, because there might be multiple tab systems open at the same time.
             const is_main_settings_modal = container_element.hasClass("vertical-tab-content");
+            const keep_tab_dimensions = !is_main_settings_modal && !container_element.hasClass("SC-shell-command-settings-modal");
             for (const index in tab_contents) {
                 const tab_content = tab_contents[index];
 
                 // Get the maximum tab dimensions so that all tabs can have the same dimensions.
                 // But don't do it if this is the main settings modal
-                if (!is_main_settings_modal) {
+                if (keep_tab_dimensions) {
                     tab_content.addClass("SC-tab-active"); // Need to make the tab visible temporarily in order to get the dimensions.
                     if (tab_content.offsetHeight > max_height) {
                         max_height = tab_content.offsetHeight;
@@ -147,7 +148,7 @@ export function createTabs(container_element: HTMLElement, tabs: Tabs, activateT
 
             // Apply the max dimensions to this tab
             // But don't do it if this is the main settings modal
-            if (!is_main_settings_modal) {
+            if (keep_tab_dimensions) {
                 tab_content.style.width = max_width + "px";
                 tab_content.style.height = max_height + "px";
             }

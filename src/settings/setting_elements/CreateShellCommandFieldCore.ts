@@ -78,16 +78,17 @@ export function CreateShellCommandFieldCore(
         extra_on_change(shell_command);
     }
 
+    const command_container = container_element.createDiv({attr: {class: "SC-shell-command-field-group"}});
     const setting_group: SettingFieldGroup = {
         name_setting:
-            new Setting(container_element)
+            new Setting(command_container)
                 .setClass("SC-name-setting")
                 .then((name_setting) => {
                     name_setting.nameEl.innerHTML = setting_icon_and_name;
                 })
         ,
         shell_command_setting:
-            new Setting(container_element)
+            new Setting(command_container)
                 .addTextArea(textareaComponent => {
                         textareaComponent
                             .setPlaceholder(shell_command_placeholder)
@@ -99,7 +100,7 @@ export function CreateShellCommandFieldCore(
                 .setClass("SC-shell-command-setting")
         ,
         preview_setting:
-            new Setting(container_element)
+            new Setting(command_container)
                 .setClass("SC-preview-setting")
                 .then(async (setting: Setting) => {
                     await generatePreview(setting);
