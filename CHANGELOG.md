@@ -23,6 +23,10 @@ Features that are currently in development and not released yet. This does not i
 
 ## [0.23.1] - 2026-08-
 
+### Added
+
+- Some simple unit tests for certain contracts which can be tested without requiring interaction with a running Obsidian
+
 ### Fixed
 
 - Settings tabs was blank on Obsidian 1.13+: Replaced custom tabs with Obsidian default tabs. The settings UI is functionally equivalent but looks quite different now. It is more consistent with the "Obsidian-Style".
