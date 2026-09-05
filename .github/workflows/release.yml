@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release, for example v0.23.1"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish GitHub release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check release version
+        run: |
+          TAG="${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
+          VERSION="${TAG#v}"
+          export VERSION
+          node -e "
+            const fs = require('fs');
+            const version = process.env.VERSION;
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+            const versions = JSON.parse(fs.readFileSync('versions.json', 'utf8'));
+            if (pkg.version !== version) throw new Error(\`package.json version \${pkg.version} does not match tag \${version}\`);
+            if (manifest.version !== version) throw new Error(\`manifest.json version \${manifest.version} does not match tag \${version}\`);
+            if (!versions[version]) throw new Error(\`versions.json has no entry for \${version}\`);
+            if (versions[version] !== manifest.minAppVersion) throw new Error(\`versions.json min app version \${versions[version]} does not match manifest minAppVersion \${manifest.minAppVersion}\`);
+          "
+
+      - name: Run tests
+        run: npm test
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build plugin
+        run: npm run build
+
+      - name: Verify release assets
+        run: test -s main.js && test -s manifest.json && test -s styles.css
+
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" main.js manifest.json styles.css --clobber
+          else
+            gh release create "$TAG" main.js manifest.json styles.css --title "$TAG" --notes "Release $TAG"
+          fi
